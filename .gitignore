@@ -1,1 +1,3 @@
+.gitignore
 pcap/
+make.sh
