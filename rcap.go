@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/google/gopacket/pcapgo"
@@ -15,13 +16,15 @@ import (
 	"syscall"
 	"time"
 	// debug
-	// "fmt"
 	// "reflect"
 )
 
 const (
-	SAMPLING_DUMP = 10000
+	// SamplingDump holds the number of packets to dump sampling results.
+	SamplingDump = 10000
 )
+
+var version = "<blank>"
 
 var (
 	// Params used for libpcap.
@@ -36,8 +39,8 @@ var (
 	timezone string  // timezone used for fileFmt
 	interval int64   // rotation interval [sec]
 	offset   int64   // rotation interval offset [sec]
-	sampling float64 // sampling rate (probability between 0 and 1)
-	logFile  string  // log file
+	sampling float64 // sampling rate (probability, from 0 to 1)
+	logFile  string  // path to log file
 
 	// Path to config file.
 	cnfFile string
@@ -46,6 +49,7 @@ var (
 func main() {
 	var f *os.File
 	var w *pcapgo.Writer
+	var showVersion bool
 
 	// Parse params from command-line arguments.
 	flag.StringVar(&device, "i", "", "device name (e.g. en0, eth0).")
@@ -60,7 +64,13 @@ func main() {
 	flag.Float64Var(&sampling, "sampling", 1, "sampling rate (0 <= p <= 1).")
 	flag.StringVar(&logFile, "L", "", "log file.")
 	flag.StringVar(&cnfFile, "c", "", "config file (other arguments are ignored).")
+	flag.BoolVar(&showVersion, "v", false, "show version and exit.")
 	flag.Parse()
+
+	if showVersion {
+		fmt.Println("version:", version)
+		return
+	}
 
 	// Parse params from config file. Params in the command-line arguments are ignored.
 	if cnfFile != "" {
@@ -206,6 +216,9 @@ func main() {
 
 			log.Printf("capture %v packets.\n", numCapPackets)
 			log.Println("dump packets into a file:", fileName)
+
+			numPackets = 0
+			numCapPackets = 0
 		}
 
 		if pkterr != nil {
@@ -225,7 +238,7 @@ func main() {
 				numCapPackets++
 			}
 
-			if numPackets%SAMPLING_DUMP == 0 {
+			if numPackets%SamplingDump == 0 {
 				log.Printf("sampling result: %d/%d\n", numCapPackets, numPackets)
 			}
 
