@@ -34,7 +34,7 @@ Compiled binary is available (only for Linux).
 
 ```bash
 $ ./rcap -h
-Usage of ./rcap_mach-o_x86-64:
+Usage of ./rcap:
   -L string
     	log file.
   -T int
