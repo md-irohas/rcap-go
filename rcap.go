@@ -144,7 +144,7 @@ func main() {
 	log.Println("open device:", device)
 
 	linkType := handle.LinkType()
-	log.Println("linktype: ", linkType)
+	log.Println("linktype:", linkType)
 
 	if bpfRules != "" {
 		err := handle.SetBPFFilter(bpfRules)

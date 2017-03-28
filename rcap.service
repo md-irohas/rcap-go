@@ -1,0 +1,13 @@
+# SYSTEMD unit file.
+
+[Unit]
+Description=Packet Dump Utility
+After=network.target
+
+[Service]
+Type=simple
+ExecStart=/opt/rcap -c /etc/rcap.toml # change here
+ExecStop=/bin/kill ${MAINPID}
+
+[Install]
+WantedBy=multi-user.target
