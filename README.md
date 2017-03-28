@@ -87,6 +87,18 @@ https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 See rcap.toml.
 
+
+### systemd
+
+rcap.service is a template unit file of systemd.
+Edit it and enable the service.
+
+```
+$ cp rcap.service /etc/systemd/system/
+$ systemctl enable rcap
+```
+
+
 ## Limitations
 
 ### Run as daemon?
@@ -102,8 +114,8 @@ Use systemd or supervisord instead.
 ## TODO?
 
 * Check performance.
-* Add a unit file of systemd.
 * Make documents rich.
+
 
 ## License
 
