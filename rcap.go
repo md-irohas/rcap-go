@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/google/gopacket/layers"
+	//	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
 	"github.com/google/gopacket/pcapgo"
 	"github.com/jehiah/go-strftime"
@@ -24,7 +24,7 @@ const (
 	SamplingDump = 10000
 )
 
-var version = "<blank>"
+var version = "0.0.2"
 
 var (
 	// Params used for libpcap.
@@ -41,15 +41,13 @@ var (
 	offset   int64   // rotation interval offset [sec]
 	sampling float64 // sampling rate (probability, from 0 to 1)
 	logFile  string  // path to log file
-
-	// Path to config file.
-	cnfFile string
 )
 
 func main() {
 	var f *os.File
 	var w *pcapgo.Writer
 	var showVersion bool
+	var cnfFile string
 
 	// Parse params from command-line arguments.
 	flag.StringVar(&device, "i", "", "device name (e.g. en0, eth0).")
@@ -145,6 +143,9 @@ func main() {
 
 	log.Println("open device:", device)
 
+	linkType := handle.LinkType()
+	log.Println("linktype: ", linkType)
+
 	if bpfRules != "" {
 		err := handle.SetBPFFilter(bpfRules)
 		if err != nil {
@@ -212,7 +213,7 @@ func main() {
 			}
 
 			w = pcapgo.NewWriter(f)
-			w.WriteFileHeader(uint32(snaplen), layers.LinkTypeEthernet)
+			w.WriteFileHeader(uint32(snaplen), linkType)
 
 			log.Printf("capture %v packets.\n", numCapPackets)
 			log.Println("dump packets into a file:", fileName)
