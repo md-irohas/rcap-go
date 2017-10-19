@@ -13,6 +13,7 @@ import (
 	"os"
 	"os/signal"
 	"path/filepath"
+	"strconv"
 	"syscall"
 	"time"
 	// debug
@@ -24,7 +25,7 @@ const (
 	SamplingDump = 10000
 )
 
-var version = "0.0.2"
+var version = "0.0.3"
 
 var (
 	// Params used for libpcap.
@@ -42,6 +43,11 @@ var (
 	sampling float64 // sampling rate (probability, from 0 to 1)
 	logFile  string  // path to log file
 )
+
+func fileExists(filename string) bool {
+	_, err := os.Stat(filename)
+	return err == nil
+}
 
 func main() {
 	var f *os.File
@@ -198,6 +204,17 @@ func main() {
 
 			// Fill format of date and time in fileFmt.
 			fileName := strftime.Format(fileFmt, tmpTime)
+
+			// If the filename already exists, find alternative filenames.
+			// e.g. foobar.pcap -> foobar-1.pcap
+			for i := 1; fileExists(fileName); i++ {
+				log.Println("file already exists:", fileName)
+
+				fileFmtExt := filepath.Ext(fileFmt)
+				fileFmtBase := fileFmt[0 : len(fileFmt)-len(fileFmtExt)]
+				newFileFmt := fileFmtBase + "-" + strconv.Itoa(i) + fileFmtExt
+				fileName = strftime.Format(newFileFmt, tmpTime)
+			}
 
 			// Make a directory for output files.
 			dirName := filepath.Dir(fileName)
