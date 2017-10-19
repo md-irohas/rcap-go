@@ -85,16 +85,25 @@ https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 ### Configuration file
 
-See rcap.toml.
+See rcap.toml.orig.
 
 
 ### systemd
 
-rcap.service is a template unit file of systemd.
-Edit it and enable the service.
+`rcap.service.orig` is a template unit file of systemd.
+Edit it and start/enable the service.
 
 ```
-$ cp rcap.service /etc/systemd/system/
+# Copy systemd's unit file to systemd's directory.
+$ cp rcap.service.orig /etc/systemd/system/rcap.service
+
+# Edit the unit file.
+$ vim /etc/systemd/system/rcap.service
+
+# Start the rcap service.
+$ systemctl start rcap
+
+# (Optional) Enable the rcap service at startup.
 $ systemctl enable rcap
 ```
 
@@ -125,5 +134,4 @@ MIT License ([link](https://opensource.org/licenses/MIT)).
 ## Contact
 
 md (E-mail: md.irohas at gmail.com)
-
 
