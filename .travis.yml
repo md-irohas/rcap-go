@@ -13,4 +13,5 @@ deploy:
   file: rcap-go
   skip_cleanup: true
   on:
+    tags: true
     repo: md-irohas/rcap-go
