@@ -1,0 +1,15 @@
+language: go
+sudo: required
+before_install:
+  - sudo apt-get update -qq
+  - sudo apt-get install -qq -y libpcap-dev
+install:
+  - go build -v
+deploy:
+  provider: releases
+  api_key:
+    secure: uYBds6Hi0q5TVY0BV7t+nDNJRJgP1ws2NB5okCheSdbpPgHt1CIbHfXRrymXoXcXzXX56CchQRBAsIyc2jzXxClzsbNYWnZMvs/CTmyPjn5Q1DANKsiNixptQMIu8vGcSWGRDzCySknEQJ01+tFhHgQzesPwCWuC07UarLdRYVqkl4KwnNj7nBQggMzAFLzvmy2GbZ/kHbKCIm9C6XJXpRdQDg65sJ/ltJv94Vocn5M2/TV6n0ut0quKTssptq5Rjm0ctVotyxRIng0znh7yPhkC8rWgHvW4Rh0X+LTnkcr6IwghM7m6p1tdLkpsUKb94SfpTHzEcwScE37nLo2QRJIdxQzEbs/2piwD0+UEPCRXL++Osu6o2JbLQPjT+Go1Uf5ju8Y00+nZYR25hrIJ9IxySSbf4WpBxhOZ8ncpIjEGnPFSayqJeXQF39ZZ5dUraVRY2eEZ8M0uTYwSxtc+TPIoC5OUYrHiegRUFLYuCztfnCJ2us4UH9jJCLsqzzymUKohQ06/i5vBc3Na2iclQz5XVByd1l3J6/Ba59icCHwGSflBb9oRUbC9Eurbbj4Iv72wWaghLk3RKETxkxmCpPjXuoXAcFoT9J7MPN8LvlipERae9lTrJkYD4/1xyHo3ME4ToWMN1Q58WcPRZXfYQSyvYMTbJFZFXj5VdbomzhQ=
+  file: rcap-go
+  skip_cleanup: true
+  on:
+    repo: md-irohas/rcap-go
