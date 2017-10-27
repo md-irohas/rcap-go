@@ -25,7 +25,7 @@ const (
 	SamplingDump = 10000
 )
 
-var version = "0.0.3"
+var version = "0.0.4"
 
 var (
 	// Params used for libpcap.
@@ -42,6 +42,7 @@ var (
 	offset   int64   // rotation interval offset [sec]
 	sampling float64 // sampling rate (probability, from 0 to 1)
 	logFile  string  // path to log file
+	useSystemTime bool	// use system time as a time source of rotation
 )
 
 func fileExists(filename string) bool {
@@ -69,6 +70,7 @@ func main() {
 	flag.StringVar(&logFile, "L", "", "log file.")
 	flag.StringVar(&cnfFile, "c", "", "config file (other arguments are ignored).")
 	flag.BoolVar(&showVersion, "v", false, "show version and exit.")
+	flag.BoolVar(&useSystemTime, "S", false, "use system time as a time source of rotation (default: use packet-captured time).")
 	flag.Parse()
 
 	if showVersion {
@@ -94,6 +96,7 @@ func main() {
 		offset = cnf.Get("rcap.offset").(int64)
 		sampling = cnf.Get("rcap.sampling").(float64)
 		logFile = cnf.Get("rcap.logFile").(string)
+		useSystemTime = cnf.Get("rcap.useSystemTime").(bool)
 	}
 
 	// Init logging.
@@ -174,6 +177,12 @@ func main() {
 
 	log.Println("set sampling rate:", sampling)
 
+	if useSystemTime {
+		log.Println("set time source: system")
+	} else {
+		log.Println("set time source: packet")
+	}
+
 	// Read packets from device and dump them into a file.
 	var lstTime int64
 	lstTime = 0
@@ -183,9 +192,15 @@ func main() {
 	numCapPackets = 0
 
 	for {
-		curTime := time.Now().Unix()
+		var curTime int64
 
 		data, capinfo, pkterr := handle.ZeroCopyReadPacketData()
+
+		if useSystemTime {
+			curTime = time.Now().Unix()
+		} else {
+			curTime = capinfo.Timestamp.Unix()
+		}
 
 		if f != nil {
 			// If file need to be rotated, close the file and reset the file variable.

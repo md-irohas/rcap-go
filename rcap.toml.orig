@@ -41,3 +41,7 @@ sampling = 1.0
 # filename of log.
 # if `logFile` is blank, logging message will be shown in stdout.
 logFile = ""
+
+# use system time as a time source of rotation.
+# default: use packet-captured time
+useSystemTime = false
