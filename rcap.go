@@ -36,13 +36,13 @@ var (
 	bpfRules string
 
 	// Params used for this program.
-	fileFmt  string  // format of output file
-	timezone string  // timezone used for fileFmt
-	interval int64   // rotation interval [sec]
-	offset   int64   // rotation interval offset [sec]
-	sampling float64 // sampling rate (probability, from 0 to 1)
-	logFile  string  // path to log file
-	useSystemTime bool	// use system time as a time source of rotation
+	fileFmt       string  // format of output file
+	timezone      string  // timezone used for fileFmt
+	interval      int64   // rotation interval [sec]
+	offset        int64   // rotation interval offset [sec]
+	sampling      float64 // sampling rate (probability, from 0 to 1)
+	logFile       string  // path to log file
+	useSystemTime bool    // use system time as a time source of rotation
 )
 
 func fileExists(filename string) bool {
