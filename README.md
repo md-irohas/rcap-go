@@ -36,29 +36,30 @@ Compiled binary is available (only for Linux).
 $ ./rcap -h
 Usage of ./rcap:
   -L string
-    	log file.
+        log file.
+  -S    use system time as a time source of rotation (default: use packet-captured time).
   -T int
-    	rotation interval [sec]. (default 60)
+        rotation interval [sec]. (default 60)
   -c string
-    	config file (other arguments are ignored).
+        config file (other arguments are ignored).
   -f string
-    	BPF rules.
+        BPF rules.
   -i string
-    	device name (e.g. en0, eth0).
+        device name (e.g. en0, eth0).
   -offset int
-    	rotation interval offset [sec].
-  -p	do NOT put into promiscuous mode. (default true)
+        rotation interval offset [sec].
+  -p    do NOT put into promiscuous mode. (default true)
   -s uint
-    	snapshot length. (default 65535)
+        snapshot length. (default 65535)
   -sampling float
-    	sampling rate (0 <= p <= 1). (default 1)
+        sampling rate (0 <= p <= 1). (default 1)
   -t uint
-    	timeout of reading packets from interface [milli-sec]. (default 100)
-  -v	show version and exit.
+        timeout of reading packets from interface [milli-sec]. (default 100)
+  -v    show version and exit.
   -w string
-    	format of output file. (default "pcap/%Y%m%d/%Y%m%d-%H%M%S.pcap")
+        format of output file. (default "pcap/%Y%m%d/%Y%m%d-%H%M%S.pcap")
   -z string
-    	timezone used for output file. (default "Local")
+        timezone used for output file. (default "Local")
 ```
 
 
