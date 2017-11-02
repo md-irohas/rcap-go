@@ -183,23 +183,23 @@ func main() {
 		log.Println("set time source: packet")
 	}
 
+	var lstTime int64 = 0
+	var numPackets, numCapPackets uint64 = 0, 0
+
 	// Read packets from device and dump them into a file.
-	var lstTime int64
-	lstTime = 0
-
-	var numPackets, numCapPackets uint64
-	numPackets = 0
-	numCapPackets = 0
-
 	for {
-		var curTime int64
-
 		data, capinfo, pkterr := handle.ZeroCopyReadPacketData()
+
+		var curTime int64
 
 		if useSystemTime {
 			curTime = time.Now().Unix()
 		} else {
-			curTime = capinfo.Timestamp.Unix()
+			if pkterr != nil {
+				curTime = time.Now().Unix()
+			} else {
+				curTime = capinfo.Timestamp.Unix()
+			}
 		}
 
 		if f != nil {
