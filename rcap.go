@@ -25,7 +25,7 @@ const (
 	SamplingDump = 10000
 )
 
-var version = "0.0.4"
+var version = "0.0.6"
 
 var (
 	// Params used for libpcap.

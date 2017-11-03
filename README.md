@@ -8,26 +8,35 @@ wrote `rcap-go`.
 
 * rotation of pcap files every specified interval (even if no packets are
   captured).
-* timezone of pcap files.
+* flexible filename format (timezone-aware)
 * random sampling of packets.
 * configuration file.
 * logging.
 
 
-## Requirements
+## Installation
+
+### Requirements
 
 * libpcap-dev
 
 
-### Ubuntu
+#### Ubuntu
 
 ```bash
 $ apt install libpcap-dev
 ```
 
-## Compilation
+### Compilation
 
-Compiled binary is available (only for Linux).
+```bash
+$ go build rcap.go
+```
+
+
+### Compiled Binaries
+
+Compiled binary is available (only for Linux x86_64).
 
 
 ## Usage
@@ -119,12 +128,6 @@ reasons, so I do not implement this program as a daemon.
 (See "[runtime: support for daemonize #227](https://github.com/golang/go/issues/227)")
 
 Use systemd or supervisord instead.
-
-
-## TODO?
-
-* Check performance.
-* Make documents rich.
 
 
 ## License
