@@ -4,14 +4,14 @@ I just want a utility to capture traffic for honeypot monitoring.
 But existing utilities such as tcpdump and tshark do not satisfy my needs, so I
 wrote `rcap-go`.
 
-`rcap-go` is a traffic-capturing utility with the following functions.
+`rcap-go` has the following functions.
 
-* rotation of pcap files every specified interval (even if no packets are
+* Rotation of pcap files every specified interval (even if no packets are
   captured).
-* flexible filename format (timezone-aware)
-* random sampling of packets.
-* configuration file.
-* logging.
+* Flexible filename format (timezone-aware)
+* Random sampling of packets.
+* Configuration file support.
+* Logging.
 
 
 ## Installation
@@ -36,7 +36,9 @@ $ go build rcap.go
 
 ### Compiled Binaries
 
-Compiled binary is available (only for Linux x86_64).
+Compiled binaries are available (only for Linux x86_64) at GitHub release page.
+
+See https://github.com/md-irohas/rcap-go/releases.
 
 
 ## Usage
@@ -137,5 +139,5 @@ MIT License ([link](https://opensource.org/licenses/MIT)).
 
 ## Contact
 
-md (E-mail: md.irohas at gmail.com)
+mkt (E-mail: md.irohas at gmail.com)
 
