@@ -9,7 +9,7 @@ jobs:
     working_directory: /go/src/github.com/md-irohas/rcap-go
     steps:
       - checkout
-      - run: apt-get update && apt-get install -y libpcap-dev
+      - run: sudo apt-get update && sudo apt-get install -y libpcap-dev
       - run: go get -v -d
       - run: go build -v
       - store_artifacts:
