@@ -22,7 +22,7 @@ import (
 
 const (
 	// Version
-	Version = "0.0.6"
+	Version = "0.1.0"
 	// SamplingDump holds the number of packets to dump sampling results.
 	SamplingDump = 10000
 )
