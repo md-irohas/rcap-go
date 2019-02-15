@@ -21,11 +21,12 @@ import (
 )
 
 const (
+	// Version
+	Version = "0.0.6"
 	// SamplingDump holds the number of packets to dump sampling results.
 	SamplingDump = 10000
 )
 
-var version = "0.0.6"
 
 var (
 	// Params used for libpcap.
@@ -74,7 +75,7 @@ func main() {
 	flag.Parse()
 
 	if showVersion {
-		fmt.Println("version:", version)
+		fmt.Println(Version)
 		return
 	}
 
@@ -85,8 +86,8 @@ func main() {
 			log.Fatal(err)
 		}
 
-		device = cnf.Get("rcap.device").(string)
-		snaplen = uint(cnf.Get("rcap.snaplen").(int64))
+		device = cnf.GetDefault("rcap.device", device).(string)
+		snaplen = uint(cnf.GetDefault("rcap.snaplen", snaplen).(int64))
 		promisc = cnf.Get("rcap.promisc").(bool)
 		toMs = uint(cnf.Get("rcap.toMs").(int64))
 		bpfRules = cnf.Get("rcap.bpfRules").(string)
