@@ -1,0 +1,47 @@
+[rcap]
+
+# device name to listen on (e.g. en0, eth0)
+# if `device` is blank, select the first device out of devices which are
+# found in the machine.
+device = "en0"
+
+# snapshot length
+# capture `snaplen` bytes of packets from interface.
+snaplen = 65535
+
+# flag to put into promiscuous mode or not.
+promisc = true
+
+# timeout for reading packets from device (millisecond).
+toMs = 100
+
+# BPF rules (see man pcap-filter)
+bpfRules = "udp"
+
+# filename of pcap.
+# format of date and time (e.g. %Y, %m ...) will be converted (see man
+# strftime)
+fileFmt = "pcap/%Y%m%d/%Y%m%d-%H%M00.pcapng"
+
+# timezone.
+# see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+timezone = "Asia/Tokyo"
+
+# rotation interval (second)
+# pcap file will be rotated every `interval` seconds. if `interval` is zero,
+# pcap file won't be rotated forever.
+interval = 60
+
+# rotation interval offset (second)
+offset = -1
+
+# sampling rate [0, 1]
+sampling = 1.0
+
+# filename of log.
+# if `logFile` is blank, logging message will be shown in stdout.
+logFile = ""
+
+# use system time as a time source of rotation.
+# default: use packet-captured time
+useSystemTime = false
