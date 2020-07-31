@@ -89,7 +89,7 @@ func (c *Config) CheckAndFormat() error {
 // LoadConfig loads a configuration from the given filename and returns an
 // instance of Config struct.
 //
-// LoadConfig returns the following errors:
+// LoadConfig may return the following errors:
 // - ErrEmptyFilename: when the filename is an empty string.
 // - ErrFileNotFound: when the filename does not exist on the filesystem.
 // - ErrFileRead: when ioutil.Readfile fails to read from the file.

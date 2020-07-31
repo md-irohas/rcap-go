@@ -14,8 +14,8 @@ type Reader struct {
 	numPackets uint
 }
 
-// NewReader create a new struct Reader. This function calls pcap.OpenLive and
-// apply SetBPFFilter method to the returned handle based on the given Config
+// NewReader creates a new struct Reader. This function calls pcap.OpenLive and
+// applies SetBPFFilter method to the returned handle based on the given Config
 // struct.
 func NewReader(config *Config) (*Reader, error) {
 	c := config.Rcap
@@ -32,9 +32,8 @@ func NewReader(config *Config) (*Reader, error) {
 		}
 	}
 
-	log.Printf("open interface: %v", c.Device)
-	log.Printf("link type: %v", handle.LinkType())
-	log.Printf("set bpf: %v", c.BpfRules)
+	log.Printf("open interface: %v (linktype: %v)", c.Device, handle.LinkType())
+	log.Printf("set bpf rule: %v", c.BpfRules)
 
 	reader := &Reader{
 		config:     config,
@@ -60,6 +59,8 @@ func (r *Reader) ResetNumPackets() {
 	r.numPackets = 0
 }
 
+// ReadPacket returns a packet data with the same format as
+// ZeroCopyReadPacketData.
 func (r *Reader) ReadPacket() ([]byte, gopacket.CaptureInfo, error) {
 	data, capinfo, pkterr := r.handle.ZeroCopyReadPacketData()
 
@@ -70,6 +71,7 @@ func (r *Reader) ReadPacket() ([]byte, gopacket.CaptureInfo, error) {
 	return data, capinfo, pkterr
 }
 
+// Close closes the handle.
 func (r *Reader) Close() {
 	r.handle.Close()
 }

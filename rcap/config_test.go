@@ -38,7 +38,7 @@ func TestLoadConfig(t *testing.T) {
 	}
 
 	// Check config values (per type).
-	r := config.Rcap
+	r := &config.Rcap
 	if r.Device != "en0" || r.SnapLen != 65535 || r.Promisc != true || r.Sampling != 1.0 {
 		t.Errorf("unexpected values: %+v", r)
 	}
