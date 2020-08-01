@@ -6,8 +6,12 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/opt/rcap -c /etc/rcap.toml # change here
-ExecStop=/bin/kill ${MAINPID}
+ExecStart=/usr/local/sbin/rcap -c /etc/rcap.toml
+KillSignal=SIGINT
+Restart=on-failure
+
+# Do NOT use /bin/kill ${MAINPID} to kill the rcap process gracefully.
+#ExecStop=/bin/kill ${MAINPID}
 
 [Install]
 WantedBy=multi-user.target
