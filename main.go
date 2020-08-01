@@ -32,7 +32,7 @@ func main() {
 	flag.UintVar(&r.ToMs, "t", 100, "timeout of reading packets from interface [milli-sec].")
 	flag.StringVar(&r.BpfRules, "f", "", "BPF rules.")
 	flag.StringVar(&r.FileFmt, "w", "pcap/%Y%m%d/%Y%m%d-%H%M%S.pcap", "format of output file.")
-	flag.StringVar(&r.Timezone, "z", "Local", "timezone used for output file.")
+	flag.StringVar(&r.Timezone, "z", "UTC", "timezone used for output file.")
 	flag.Int64Var(&r.Interval, "T", 60, "rotation interval [sec].")
 	flag.Int64Var(&r.Offset, "offset", 0, "rotation interval offset [sec].")
 	flag.Float64Var(&r.Sampling, "sampling", 1, "sampling rate (0 <= p <= 1).")
