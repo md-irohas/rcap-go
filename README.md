@@ -1,16 +1,17 @@
 # rcap-go
 
+The `rcap` is a simple packet capturing utility written in Go.
+
 I just want a utility to capture traffic for honeypot monitoring.
-But existing utilities such as tcpdump and tshark do not satisfy my needs, so I
-wrote `rcap-go`.
+But existing utilities such as tcpdump and tshark do not satisfy my needs, so I wrote the `rcap`.
 
-`rcap-go` has the following functions.
+The `rcap` has the following functions.
 
-* Rotation of pcap files every specified interval (even if no packets are
-  captured).
+* Dumping packets to files as PCAP format.
+* Rotation of pcap files every specified interval with offset (even if no packets are captured).
 * Flexible filename format (timezone-aware)
 * Random sampling of packets.
-* Configuration file support.
+* Configuration file.
 * Logging.
 
 
@@ -18,21 +19,14 @@ wrote `rcap-go`.
 
 ### Requirements
 
+* Go compiler
 * libpcap-dev
-
-
-#### Ubuntu
-
-```bash
-$ apt install libpcap-dev
-```
 
 ### Compilation
 
-```bash
-$ go build rcap.go
+```sh
+$ go build
 ```
-
 
 ### Compiled Binaries
 
@@ -43,46 +37,48 @@ See https://github.com/md-irohas/rcap-go/releases.
 
 ## Usage
 
-```bash
-$ ./rcap -h
+```sh
+$ ./rcap
 Usage of ./rcap:
   -L string
-        log file.
-  -S    use system time as a time source of rotation (default: use packet-captured time).
+    	[deprecated] log file.
+  -S	use system time as a time source of rotation (default: use packet-captured time).
   -T int
-        rotation interval [sec]. (default 60)
+    	rotation interval [sec]. (default 60)
   -c string
-        config file (other arguments are ignored).
+    	config file (other arguments will be ignored).
   -f string
-        BPF rules.
+    	BPF rules.
   -i string
-        device name (e.g. en0, eth0).
+    	device name (e.g. en0, eth0). (default "any")
   -offset int
-        rotation interval offset [sec].
-  -p    do NOT put into promiscuous mode. (default true)
+    	rotation interval offset [sec].
+  -p	do NOT put into promiscuous mode. (default true)
   -s uint
-        snapshot length. (default 65535)
+    	snapshot length. (default 65535)
   -sampling float
-        sampling rate (0 <= p <= 1). (default 1)
+    	sampling rate (0 <= p <= 1). (default 1)
   -t uint
-        timeout of reading packets from interface [milli-sec]. (default 100)
-  -v    show version and exit.
+    	timeout of reading packets from interface [milli-sec]. (default 100)
+  -v	show version and exit.
   -w string
-        format of output file. (default "pcap/%Y%m%d/%Y%m%d-%H%M%S.pcap")
+    	format of output file. (default "pcap/%Y%m%d/%Y%m%d-%H%M%S.pcap")
   -z string
-        timezone used for output file. (default "Local")
+    	timezone used for output file. (default "Local")
 ```
 
 
 ### Examples
 
-```bash
-# capture daily traffic of HTTP (80/tcp) and rotation will be done at 00:00 (UTC).
+```sh
+# capture traffic of HTTP (80/tcp) on the interface 'en0' and files are rotated at every 00:00 (UTC).
 $ ./rcap -i en0 -w http-%Y%m%d.pcap -f "tcp and port 80" -T 86400
 ```
 
-```bash
-# capture daily traffic and rotation will be done at 09:00 (i.e. 00:00 (JST)).
+NOTE: files are rotated at (unixtime % 86400) == offset.
+
+```sh
+# capture the whole traffic on the interface 'en0' and files are rotated at every 09:00 (i.e., 00:00 (JST)).
 # the time format of pcap files are filled with the timezone "Asia/Tokyo".
 $ ./rcap -i en0 -w traffic-%Y%m%d.pcap -T 86400 -offset 54000 -z Asia/Tokyo
 ```
@@ -105,7 +101,7 @@ See rcap.toml.orig.
 `rcap.service.orig` is a template unit file of systemd.
 Edit it and start/enable the service.
 
-```
+```sh
 # Copy systemd's unit file to systemd's directory.
 $ cp rcap.service.orig /etc/systemd/system/rcap.service
 
