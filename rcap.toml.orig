@@ -3,7 +3,7 @@
 # device name to listen on (e.g. en0, eth0)
 # if `device` is blank, select the first device out of devices which are
 # found in the machine.
-device = "en0"
+device = "any"
 
 # snapshot length
 # capture `snaplen` bytes of packets from interface.
@@ -16,16 +16,16 @@ promisc = true
 toMs = 100
 
 # BPF rules (see man pcap-filter)
-bpfRules = "udp"
+bpfRules = ""
 
 # filename of pcap.
 # format of date and time (e.g. %Y, %m ...) will be converted (see man
 # strftime)
-fileFmt = "pcap/%Y%m%d/%Y%m%d-%H%M00.pcap"
+fileFmt = "dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap"
 
 # timezone.
 # see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-timezone = "Asia/Tokyo"
+timezone = "UTC"
 
 # rotation interval (second)
 # pcap file will be rotated every `interval` seconds. if `interval` is zero,
@@ -36,6 +36,7 @@ interval = 60
 offset = 0
 
 # sampling rate [0, 1]
+# the value must be float (i.e., good: 1.0 bad: 1)
 sampling = 1.0
 
 # filename of log.
