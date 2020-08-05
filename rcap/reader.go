@@ -18,7 +18,7 @@ type Reader struct {
 // applies SetBPFFilter method to the returned handle based on the given Config
 // struct.
 func NewReader(config *Config) (*Reader, error) {
-	c := config.Rcap
+	c := &config.Rcap
 
 	handle, err := pcap.OpenLive(c.Device, int32(c.SnapLen), c.Promisc, time.Duration(c.ToMs)*time.Millisecond)
 	if err != nil {
@@ -72,6 +72,7 @@ func (r *Reader) ReadPacket() ([]byte, gopacket.CaptureInfo, error) {
 }
 
 // Close closes the handle.
-func (r *Reader) Close() {
+func (r *Reader) Close() error {
 	r.handle.Close()
+	return nil
 }
