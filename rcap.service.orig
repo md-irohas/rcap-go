@@ -1,17 +1,15 @@
 # SYSTEMD unit file.
 
 [Unit]
-Description=Packet Dump Utility
+Description=rcap: Packet Dump Utility
 After=network.target
 
 [Service]
 Type=simple
 ExecStart=/usr/local/sbin/rcap -c /etc/rcap.toml
+ExecReload=/bin/kill -SIGHUP ${MAINPID}
 KillSignal=SIGINT
 Restart=on-failure
-
-# Do NOT use /bin/kill ${MAINPID} to kill the rcap process gracefully.
-#ExecStop=/bin/kill ${MAINPID}
 
 [Install]
 WantedBy=multi-user.target
