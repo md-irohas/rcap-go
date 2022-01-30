@@ -1,15 +1,16 @@
 package rcap
 
 import (
-	"github.com/google/gopacket"
-	"github.com/google/gopacket/layers"
-	"github.com/google/gopacket/pcapgo"
-	"github.com/jehiah/go-strftime"
 	"log"
 	"os"
 	"path/filepath"
 	"strconv"
 	"time"
+
+	"github.com/google/gopacket"
+	"github.com/google/gopacket/layers"
+	"github.com/google/gopacket/pcapgo"
+	"github.com/jehiah/go-strftime"
 )
 
 // Writer writes packet data to files which are rotated every interval.
@@ -44,11 +45,26 @@ func (w *Writer) NumPackets() uint {
 
 // shoudRotate returns true if the file should be rotated, otherwise false.
 func (w *Writer) shouldRotate(ts int64) bool {
-	c := w.config.Rcap
+	c := &w.config.Rcap
+
 	if c.Interval == 0 {
 		return false
 	} else {
-		return (ts > w.lastRotTime) && (ts%c.Interval == c.Offset)
+		return (ts >= (w.lastRotTime + c.Interval))
+	}
+}
+
+func (w *Writer) updateLastRotTime(ts int64) {
+	c := &w.config.Rcap
+
+	if w.lastRotTime == 0 {
+		rotTime := (ts / c.Interval * c.Interval) + c.Offset
+		if ts < rotTime {
+			rotTime -= c.Interval
+		}
+		w.lastRotTime = rotTime
+	} else {
+		w.lastRotTime += c.Interval
 	}
 }
 
@@ -56,7 +72,7 @@ func (w *Writer) shouldRotate(ts int64) bool {
 // from the Config.FileNameFormat, and if the file name already exists, this
 // function returns alternative filenames (e.g. foobar.pcap -> foobar-1.pcap)
 func (w *Writer) newFileName(ts int64) string {
-	c := w.config.Rcap
+	c := &w.config.Rcap
 
 	// Convert unix time to location-aware time.
 	// NOTE: time.Unix(sec, nanosec)
@@ -84,7 +100,7 @@ func (w *Writer) newFileName(ts int64) string {
 
 // Update method update internal timestamp and rotates the file.
 func (w *Writer) Update(ts int64) error {
-	c := w.config.Rcap
+	c := &w.config.Rcap
 
 	if w.file != nil {
 		if w.shouldRotate(ts) {
@@ -94,7 +110,7 @@ func (w *Writer) Update(ts int64) error {
 	}
 
 	if w.file == nil {
-		w.lastRotTime = ts
+		w.updateLastRotTime(ts)
 
 		// Fill datetime format in file name format.
 		fileName := w.newFileName(ts)

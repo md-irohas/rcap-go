@@ -1,11 +1,12 @@
 package rcap
 
 import (
+	"log"
+	"time"
+
 	"github.com/google/gopacket"
 	"github.com/google/gopacket/layers"
 	"github.com/google/gopacket/pcap"
-	"log"
-	"time"
 )
 
 type Reader struct {
@@ -73,6 +74,8 @@ func (r *Reader) ReadPacket() ([]byte, gopacket.CaptureInfo, error) {
 
 // Close closes the handle.
 func (r *Reader) Close() error {
+	// r.handle.Close does not return any error, but io.Closer interface
+	// requires a return value with error.
 	r.handle.Close()
 	return nil
 }

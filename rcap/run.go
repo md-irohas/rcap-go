@@ -1,13 +1,14 @@
 package rcap
 
 import (
-	"github.com/google/gopacket/pcap"
 	"io"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/google/gopacket/pcap"
 )
 
 const (
@@ -45,11 +46,11 @@ func Run(config *Config) error {
 	defer func() {
 		if reader != nil {
 			reader.Close()
-			log.Println("close reader")
+			log.Println("close reader.")
 		}
 		if writer != nil {
 			writer.Close()
-			log.Println("close writer")
+			log.Println("close writer.")
 		}
 	}()
 
@@ -80,12 +81,11 @@ CAPTURE_LOOP:
 						writer = nil
 					}
 
-					log.Println("reload config")
-					log.Println("use a new config")
+					log.Println("reload config and use the new config.")
 					config = newConfig
 				} else {
 					log.Printf("failed to reload config: %v", err)
-					log.Println("use the previous config")
+					log.Println("use the previous config instead.")
 				}
 			}
 
@@ -120,7 +120,11 @@ CAPTURE_LOOP:
 			}
 		}
 
-		writer.Update(curTime)
+		err = writer.Update(curTime)
+		if err != nil {
+			log.Printf("failed to update writer: %v", err)
+			continue
+		}
 
 		if pkterr != nil {
 			switch pkterr {
@@ -141,15 +145,13 @@ CAPTURE_LOOP:
 		if config.Rcap.SamplingMode {
 			sample := (Random() <= config.Rcap.Sampling)
 
-			if sample {
-				numSampledPackets++
-			}
-
 			if numCapturedPackets%SamplingDump == 0 {
 				log.Printf("sampling result: %d/%d\n", numSampledPackets, numCapturedPackets)
 			}
 
-			if !sample {
+			if sample {
+				numSampledPackets++
+			} else {
 				continue
 			}
 		}

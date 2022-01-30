@@ -1,10 +1,11 @@
 package rcap
 
 import (
-	"github.com/google/gopacket/layers"
 	"os"
 	"testing"
 	"time"
+
+	"github.com/google/gopacket/layers"
 )
 
 func TestNumPackets(t *testing.T) {
@@ -15,46 +16,73 @@ func TestNumPackets(t *testing.T) {
 	}
 }
 
-func TestShouldRotate(t *testing.T) {
-	var config *Config
-	var writer *Writer
-
+func TestShouldRotateWithIntervalZero(t *testing.T) {
 	// Interval = 0 , Offset = 0 -> Always false
-	config = &Config{Rcap: RcapConfig{Interval: 0}}
-	writer = &Writer{config: config}
+	config := &Config{Rcap: RcapConfig{Interval: 0}}
+	writer := &Writer{config: config}
 
-	for i := int64(0); i <= 120; i++ {
+	for i := int64(86401); i <= 86400+120; i++ {
 		if writer.shouldRotate(i) != false {
 			t.Errorf("'false' is expected, but got 'true'")
 		}
 	}
+}
 
+func TestShouldRotateWithoutOffset(t *testing.T) {
 	// Interval = 60 , Offset = 0
 	// -> true if i == 60, 120, ..., otherwise false
 	// NOTE: false if i == 60 because of ts == writer.lastRotTime == 0.
-	config = &Config{Rcap: RcapConfig{Interval: 60}}
-	writer = &Writer{config: config}
+	config := &Config{Rcap: RcapConfig{Interval: 60}}
+	writer := &Writer{config: config}
 
-	for i := int64(0); i <= 120; i++ {
-		if i == 60 || i == 120 {
+	for i := int64(86401); i <= 86400+150; i++ {
+		if i == 86401 || i == 86400+60 || i == 86400+120 {
 			if writer.shouldRotate(i) != true {
-				t.Errorf("%d", i)
-				t.Errorf("'true' is expected, but got 'false'")
+				t.Errorf("'true' is expected, but got 'false' (ts=%d).", i)
 			}
 		} else {
 			if writer.shouldRotate(i) != false {
-				t.Errorf("'false' is expected, but got 'true'")
+				t.Errorf("'false' is expected, but got 'true' (ts=%d)", i)
 			}
 		}
-	}
 
+		if writer.shouldRotate(i) {
+			writer.updateLastRotTime(i)
+		}
+	}
+}
+
+func TestShouldRotateWithOffset(t *testing.T) {
 	// Interval = 60 , Offset = 30
 	// -> true if i == 30, 90, ..., otherwise false
-	config = &Config{Rcap: RcapConfig{Interval: 60, Offset: 30}}
-	writer = &Writer{config: config}
+	config := &Config{Rcap: RcapConfig{Interval: 60, Offset: 30}}
+	writer := &Writer{config: config}
 
-	for i := int64(0); i <= 120; i++ {
-		if i == 30 || i == 90 {
+	for i := int64(86401); i <= 86400+120; i++ {
+		if i == 86401 || i == 86400+30 || i == 86400+90 {
+			if writer.shouldRotate(i) != true {
+				t.Errorf("'true' is expected, but got 'false' (ts=%d).", i)
+			}
+		} else {
+			if writer.shouldRotate(i) != false {
+				t.Errorf("'false' is expected, but got 'true' (ts=%d).", i)
+			}
+		}
+
+		if writer.shouldRotate(i) {
+			writer.updateLastRotTime(i)
+		}
+	}
+}
+
+func TestShouldRotateDailyWithOffset(t *testing.T) {
+	// Interval = 86400 , Offset = 54000
+	// -> true if i == 54000, 140400, ..., otherwise false
+	config := &Config{Rcap: RcapConfig{Interval: 86400, Offset: 54000}}
+	writer := &Writer{config: config}
+
+	for i := int64(86401); i <= 86400+86400*2; i++ {
+		if i == 86401 || i == 86400+54000 || i == (86400*2+54000) {
 			if writer.shouldRotate(i) != true {
 				t.Errorf("'true' is expected, but got 'false'")
 			}
@@ -63,22 +91,9 @@ func TestShouldRotate(t *testing.T) {
 				t.Errorf("'false' is expected, but got 'true'")
 			}
 		}
-	}
 
-	// Interval = 86400 , Offset = 54000
-	// -> true if i == 54000, 140400, ..., otherwise false
-	config = &Config{Rcap: RcapConfig{Interval: 86400, Offset: 54000}}
-	writer = &Writer{config: config}
-
-	for i := int64(0); i <= 86400*2; i++ {
-		if i == 54000 || i == (86400+54000) {
-			if writer.shouldRotate(i) != true {
-				t.Errorf("'true' is expected, but got 'false'")
-			}
-		} else {
-			if writer.shouldRotate(i) != false {
-				t.Errorf("'false' is expected, but got 'true'")
-			}
+		if writer.shouldRotate(i) {
+			writer.updateLastRotTime(i)
 		}
 	}
 }

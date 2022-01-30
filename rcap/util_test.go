@@ -12,8 +12,8 @@ func TestRandom(t *testing.T) {
 }
 
 func TestFileExists(t *testing.T) {
-	if FileExists("../rcap.toml.orig") != true {
-		t.Error("'rcap.toml.orig' must be found, but not found.")
+	if FileExists("testdata/rcap-good.toml") != true {
+		t.Error("'testdata/rcap-good.toml' must be found, but not found.")
 	}
 	if FileExists("file-not-found") != false {
 		t.Error("'file-not-found' must be not found, but found.")

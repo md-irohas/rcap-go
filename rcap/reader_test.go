@@ -6,6 +6,7 @@ import (
 
 func TestReader(t *testing.T) {
 	// TODO
+	// Root required.
 }
 
 func TestReaderNumPackets(t *testing.T) {
@@ -24,6 +25,7 @@ func TestReaderResetNumPackets(t *testing.T) {
 	}
 
 	reader.ResetNumPackets()
+
 	if reader.NumPackets() != 0 {
 		t.Errorf("'%#v' is expected, but got '%#v'.", 0, reader.NumPackets())
 	}
@@ -31,8 +33,10 @@ func TestReaderResetNumPackets(t *testing.T) {
 
 func TestReadPacket(t *testing.T) {
 	// TODO
+	// Root required.
 }
 
 func TestReaderClose(t *testing.T) {
 	// TODO
+	// Root required.
 }

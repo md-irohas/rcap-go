@@ -3,18 +3,20 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/md-irohas/rcap-go/rcap"
 	"log"
+	"os"
+
+	"github.com/md-irohas/rcap-go/rcap"
 )
 
 const (
-	Version = "0.1.0" // Version
+	Version = "(unset)" // Version
 )
 
 func main() {
 	var configFile string
 	var showVersion bool
-	var fileConfig, cmdConfig, config *rcap.Config
+	var fileConfig, argsConfig, config *rcap.Config
 	var err error
 
 	// Meta flags.
@@ -22,8 +24,8 @@ func main() {
 	flag.BoolVar(&showVersion, "v", false, "show version and exit.")
 
 	// rcap config from command line.
-	cmdConfig = &rcap.Config{}
-	r := &cmdConfig.Rcap
+	argsConfig = &rcap.Config{}
+	r := &argsConfig.Rcap
 
 	// rcap config flags.
 	flag.StringVar(&r.Device, "i", "any", "device name (e.g. en0, eth0).")
@@ -42,13 +44,13 @@ func main() {
 
 	if showVersion {
 		fmt.Println(Version)
-		return
+		os.Exit(0)
 	}
 
 	if configFile != "" {
-		log.Println("config: file")
 		log.Printf("load config: %v", configFile)
 
+		// Load config from file and check its parameters.
 		fileConfig, err = rcap.LoadConfig(configFile)
 		if err != nil {
 			log.Fatalf("failed to load config from file: %v", err)
@@ -56,14 +58,15 @@ func main() {
 
 		config = fileConfig
 	} else {
-		log.Println("config: command-line")
+		log.Println("load config fromr command-line.")
 
-		err = cmdConfig.CheckAndFormat()
+		// Check config parsed from command-line.
+		err = argsConfig.CheckAndFormat()
 		if err != nil {
 			log.Fatalf("failed to load config from command-line: %v", err)
 		}
 
-		config = cmdConfig
+		config = argsConfig
 	}
 
 	if err := rcap.Run(config); err != nil {

@@ -1,9 +1,11 @@
+# Invalid Value Config
+
 [rcap]
 
 # device name to listen on (e.g. en0, eth0)
 # if `device` is blank, select the first device out of devices which are
 # found in the machine.
-device = "en0"
+device = "ens160"
 
 # snapshot length
 # capture `snaplen` bytes of packets from interface.
@@ -33,6 +35,7 @@ timezone = "Asia/Tokyo"
 interval = 60
 
 # rotation interval offset (second)
+# HERE IS INVALID
 offset = -1
 
 # sampling rate [0, 1]
