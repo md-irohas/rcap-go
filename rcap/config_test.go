@@ -9,11 +9,16 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-func makeConfig() (*Config) {
+func makeConfig() *Config {
 	config := &Config{Filename: ""}
 	toml.Unmarshal([]byte(`[rcap]`), config)
 
 	return config
+}
+
+func TestPrint(t *testing.T) {
+	config := &Config{Filename: "test"}
+	config.PrintToLog()
 }
 
 func TestConfigDefaultValues(t *testing.T) {

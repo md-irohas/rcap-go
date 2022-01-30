@@ -68,6 +68,26 @@ func (c *Config) CheckAndFormat() error {
 	return nil
 }
 
+func (c *Config) PrintToLog() {
+	r := &c.Rcap
+
+	log.Printf("==== RCAP Config ====\n")
+	log.Printf("- Filename: %v\n", c.Filename)
+	log.Printf("- RCAP:\n")
+	log.Printf("  - device:	%v\n", r.Device)
+	log.Printf("  - snaplen:	%v\n", r.SnapLen)
+	log.Printf("  - promisc:	%v\n", r.Promisc)
+	log.Printf("  - toMs:	%v\n", r.ToMs)
+	log.Printf("  - bpfRules:	%v\n", r.BpfRules)
+	log.Printf("  - fileFmt:	%v\n", r.FileFmt)
+	log.Printf("  - timezone:	%v\n", r.Timezone)
+	log.Printf("  - interval:	%v\n", r.Interval)
+	log.Printf("  - offset:	%v\n", r.Offset)
+	log.Printf("  - sampling:	%v\n", r.Sampling)
+	log.Printf("  - useSystemTime:	%v\n", r.UseSystemTime)
+	log.Printf("=====================\n")
+}
+
 // LoadConfig loads a configuration from the given filename and returns an
 // instance of Config struct.
 //

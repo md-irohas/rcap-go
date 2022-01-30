@@ -69,6 +69,8 @@ func main() {
 		config = argsConfig
 	}
 
+	config.PrintToLog()
+
 	if err := rcap.Run(config); err != nil {
 		log.Fatalf("fatal error: %v", err)
 	}

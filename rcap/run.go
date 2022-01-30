@@ -89,6 +89,7 @@ CAPTURE_LOOP:
 				}
 			}
 
+			config.PrintToLog()
 			doReload = false
 		}
 
