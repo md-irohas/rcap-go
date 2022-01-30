@@ -1,0 +1,5 @@
+dump/*
+pcap/*
+coverage*
+rcap-go
+rcap.toml
