@@ -82,13 +82,13 @@ func TestShouldRotateDailyWithOffset(t *testing.T) {
 	writer := &Writer{config: config}
 
 	for i := int64(86401); i <= 86400+86400*2; i++ {
-		if i == 86401 || i == 86400+54000 || i == (86400*2+54000) {
+		if i == 86401 || i == (86400*2-32400) || i == (86400*3-32400) {
 			if writer.shouldRotate(i) != true {
-				t.Errorf("'true' is expected, but got 'false'")
+				t.Errorf("'true' is expected, but got 'false' (ts=%d).", i)
 			}
 		} else {
 			if writer.shouldRotate(i) != false {
-				t.Errorf("'false' is expected, but got 'true'")
+				t.Errorf("'false' is expected, but got 'true' (ts=%d)", i)
 			}
 		}
 
@@ -148,12 +148,9 @@ func TestUpdate(t *testing.T) {
 	removeTestUpdateFiles()
 	defer removeTestUpdateFiles()
 
-	var config *Config
-	var writer *Writer
-
 	loc, _ := time.LoadLocation("UTC")
-	config = &Config{Rcap: RcapConfig{Interval: 60, FileFmt: "testdata/test-%Y%m%d%H%M%S.pcap", Location: loc}}
-	writer = &Writer{config: config, linkType: layers.LinkTypeEthernet}
+	config := &Config{Rcap: RcapConfig{Interval: 60, FileFmt: "testdata/test-%Y%m%d%H%M%S.pcap", Location: loc}}
+	writer := &Writer{config: config, linkType: layers.LinkTypeEthernet}
 
 	// First time.
 	writer.Update(60)
