@@ -128,7 +128,7 @@ func (w *Writer) Update(ts int64) error {
 		}
 
 		log.Printf("capture %v packets.", w.numPackets)
-		log.Println("dump packets into a file:", fileName)
+		log.Printf("dump packets into a file: %v", fileName)
 
 		// Make a new writer.
 		writer := pcapgo.NewWriter(file)
