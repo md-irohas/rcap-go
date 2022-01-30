@@ -1,0 +1,40 @@
+project_name: rcap-go
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - main: .
+    binary: rcap
+    ldflags:
+      - -s -w
+      - -X main.Version={{.Version}}
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+    goarch:
+      - amd64
+
+changelog:
+  groups:
+    - title: "Features"
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Others
+      order: 999
+
+  filters:
+    exclude:
+      - "^build"
+      - "^chore"
+      - "^ci"
+      - "^docs"
+      - "^test"
+      - "^Merge"
+
+release:
+  prerelease: auto
