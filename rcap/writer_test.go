@@ -121,9 +121,18 @@ func TestNewFileName(t *testing.T) {
 		t.Errorf("'testdata/19700101090000.txt' is expected, but got '%v'", fileName)
 	}
 
-	// Alternative filename test.
+	// With append.
 	loc, _ = time.LoadLocation("UTC")
-	config = &Config{Rcap: RcapConfig{FileFmt: "testdata/%Y%m%d%H%M%S-data.txt", Location: loc}}
+	config = &Config{Rcap: RcapConfig{FileFmt: "testdata/%Y%m%d%H%M%S-data.txt", FileAppend: true, Location: loc}}
+	writer = &Writer{config: config}
+
+	if fileName := writer.newFileName(0); fileName != "testdata/19700101000000-data.txt" {
+		t.Errorf("'testdata/19700101000000-data.txt' is expected, but got '%v'", fileName)
+	}
+
+	// Without append (alternative filename).
+	loc, _ = time.LoadLocation("UTC")
+	config = &Config{Rcap: RcapConfig{FileFmt: "testdata/%Y%m%d%H%M%S-data.txt", FileAppend: false, Location: loc}}
 	writer = &Writer{config: config}
 
 	if fileName := writer.newFileName(0); fileName != "testdata/19700101000000-data-2.txt" {

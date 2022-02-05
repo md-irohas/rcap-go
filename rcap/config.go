@@ -38,6 +38,7 @@ type RcapConfig struct {
 
 	// Params for this program.
 	FileFmt       string         `toml:"fileFmt" default:"pcap/%Y%m%d/%Y%m%d-%H%M00.pcapng"` // Path to PCAP files.
+	FileAppend    bool           `toml:"fileAppend" default:"true"`                          // Append data if the file exists.
 	Timezone      string         `toml:"timezone" default:"UTC" validate:"timezone"`         // Timezone used for FileFmt.
 	Location      *time.Location // Location data (i.e., Timezone)
 	Interval      int64          `toml:"interval" default:"60" validate:"gte=1"`               // Rotation interval (in second).
@@ -80,6 +81,7 @@ func (c *Config) PrintToLog() {
 	log.Printf("  - toMs:	%v\n", r.ToMs)
 	log.Printf("  - bpfRules:	%v\n", r.BpfRules)
 	log.Printf("  - fileFmt:	%v\n", r.FileFmt)
+	log.Printf("  - fileAppend:	%v\n", r.FileAppend)
 	log.Printf("  - timezone:	%v\n", r.Timezone)
 	log.Printf("  - interval:	%v\n", r.Interval)
 	log.Printf("  - offset:	%v\n", r.Offset)

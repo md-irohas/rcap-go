@@ -82,17 +82,19 @@ func (w *Writer) newFileName(ts int64) string {
 	// Default file name.
 	fileName := strftime.Format(c.FileFmt, locTime)
 
-	// If the file name already exists, find alternatives.
-	for i := 1; FileExists(fileName); i++ {
-		log.Println("file already exists:", fileName)
+	if !c.FileAppend {
+		// If the file name already exists, find alternatives.
+		for i := 1; FileExists(fileName); i++ {
+			log.Println("file already exists:", fileName)
 
-		fmt := c.FileFmt
-		ext := filepath.Ext(fmt)
-		base := fmt[0 : len(fmt)-len(ext)]
+			fmt := c.FileFmt
+			ext := filepath.Ext(fmt)
+			base := fmt[0 : len(fmt)-len(ext)]
 
-		// e.g. foobar.pcap -> foobar-1.pcap
-		newFmt := base + "-" + strconv.Itoa(i) + ext
-		fileName = strftime.Format(newFmt, locTime)
+			// e.g. foobar.pcap -> foobar-1.pcap
+			newFmt := base + "-" + strconv.Itoa(i) + ext
+			fileName = strftime.Format(newFmt, locTime)
+		}
 	}
 
 	return fileName
@@ -114,6 +116,7 @@ func (w *Writer) Update(ts int64) error {
 
 		// Fill datetime format in file name format.
 		fileName := w.newFileName(ts)
+		isNewFile := !FileExists(fileName)
 
 		// Make a directory for PCAP files.
 		dirName := filepath.Dir(fileName)
@@ -122,7 +125,7 @@ func (w *Writer) Update(ts int64) error {
 		}
 
 		// Make a new file
-		file, err := os.Create(fileName)
+		file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {
 			return err
 		}
@@ -132,7 +135,9 @@ func (w *Writer) Update(ts int64) error {
 
 		// Make a new writer.
 		writer := pcapgo.NewWriter(file)
-		writer.WriteFileHeader(uint32(c.SnapLen), w.linkType)
+		if isNewFile {
+			writer.WriteFileHeader(uint32(c.SnapLen), w.linkType)
+		}
 
 		w.numPackets = 0
 		w.file = file

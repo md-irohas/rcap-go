@@ -34,6 +34,7 @@ func main() {
 	flag.UintVar(&r.ToMs, "t", 100, "timeout of reading packets from interface [milli-sec].")
 	flag.StringVar(&r.BpfRules, "f", "", "BPF rules.")
 	flag.StringVar(&r.FileFmt, "w", "dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap", "format of output file.")
+	flag.BoolVar(&r.FileAppend, "append", true, "append data to a file if it exists.")
 	flag.StringVar(&r.Timezone, "z", "UTC", "timezone used for output file.")
 	flag.Int64Var(&r.Interval, "T", 60, "rotation interval [sec].")
 	flag.Int64Var(&r.Offset, "offset", 0, "rotation interval offset [sec].")

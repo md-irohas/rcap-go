@@ -33,6 +33,7 @@ func TestConfigDefaultValues(t *testing.T) {
 			ToMs:          100,
 			BpfRules:      "",
 			FileFmt:       "pcap/%Y%m%d/%Y%m%d-%H%M00.pcapng",
+			FileAppend:    true,
 			Timezone:      "UTC",
 			Interval:      60,
 			Offset:        0,
@@ -94,10 +95,4 @@ func TestLoadConfig(t *testing.T) {
 			}
 		}
 	}
-
-	// Check config values (per type).
-	// r := &config.Rcap
-	// if r.Device != "en0" || r.SnapLen != 65535 || r.Promisc != true || r.Sampling != 1.0 {
-	// 	t.Errorf("unexpected values: %+v", r)
-	// }
 }

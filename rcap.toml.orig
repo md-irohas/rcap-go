@@ -23,6 +23,12 @@ bpfRules = ""
 # strftime)
 fileFmt = "dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap"
 
+# If true, packets are appended to the file when the file exists (this is
+# default in 0.2). Otherwise, another file with suffix (e.g. some-file-1.pcap)
+# is created (this was default in v0.1). Note that the snaplen and linktype
+# must be the same as the existing file.
+fileAppend = true
+
 # timezone.
 # see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 timezone = "UTC"
