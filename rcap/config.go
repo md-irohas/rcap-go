@@ -43,7 +43,7 @@ type RcapConfig struct {
 	Location      *time.Location // Location data (i.e., Timezone)
 	Interval      int64          `toml:"interval" default:"60" validate:"gte=1"`               // Rotation interval (in second).
 	Offset        int64          `toml:"offset" default:"0" validate:"gte=0,ltfield=Interval"` // Rotation offset (in second).
-	Sampling      float64        `toml:"sampling" default:"1" validate:"gte=0,lte=1"`          // Sampling rate.
+	Sampling      float64        `toml:"sampling" default:"1.0" validate:"gte=0,lte=1"`        // Sampling rate.
 	SamplingMode  bool           // Sampling mode.
 	LogFile       string         `toml:"logFile" default:""`            // Deprecated: Log file.
 	UseSystemTime bool           `toml:"useSystemTime" default:"false"` // Use system time or packet-captured time.
@@ -82,10 +82,10 @@ func (c *Config) PrintToLog() {
 	log.Printf("  - bpfRules:	%v\n", r.BpfRules)
 	log.Printf("  - fileFmt:	%v\n", r.FileFmt)
 	log.Printf("  - fileAppend:	%v\n", r.FileAppend)
-	log.Printf("  - timezone:	%v\n", r.Timezone)
+	log.Printf("  - timezone:	%v (location: %v)\n", r.Timezone, r.Location)
 	log.Printf("  - interval:	%v\n", r.Interval)
 	log.Printf("  - offset:	%v\n", r.Offset)
-	log.Printf("  - sampling:	%v\n", r.Sampling)
+	log.Printf("  - sampling:	%v (samplingMode: %v)\n", r.Sampling, r.SamplingMode)
 	log.Printf("  - useSystemTime:	%v\n", r.UseSystemTime)
 	log.Printf("=====================\n")
 }
