@@ -16,7 +16,7 @@ promisc = true
 toMs = 100
 
 # BPF rules (see man pcap-filter)
-bpfRules = ""
+bpfRules = "ip"
 
 # filename of pcap.
 # format of date and time (e.g. %Y, %m ...) will be converted (see man
@@ -31,15 +31,32 @@ fileAppend = true
 
 # timezone.
 # see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
-timezone = "UTC"
+timezone = "Asia/Tokyo"
 
-# rotation interval (second)
+# rotation interval (in second)
 # pcap file will be rotated every `interval` seconds. if `interval` is zero,
 # pcap file won't be rotated forever.
 interval = 60
 
-# rotation interval offset (second)
+# DEPRECATED: rotation interval offset (in second)
+# This is deprecated because it is hard to understand its behaviour. Use
+# utcoffset instead.
 offset = 0
+
+# rotation interval offset from UTC (Duration type in Golang).
+#
+# Example:
+#   9h      9 hours
+#   30m     30 minutes
+#   10s     10 seconds
+#
+# See https://pkg.go.dev/time#Duration for more details.
+#
+# If you want to rotate pcap files every 00:00 in JST (Japan Standard Time,
+# GMT+9), then set "9h". If you want to rotate pcap files every 00:00 in PST
+# (Pasific Standard Time, GMT-8), then set "-8h" (Daylight Saving Time is not
+# considered).
+utcOffset = "9h"
 
 # sampling rate [0, 1]
 # the value must be float (i.e., good: 1.0 bad: 1)
