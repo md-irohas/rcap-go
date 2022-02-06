@@ -53,7 +53,7 @@ func TestShouldRotateWithoutOffset(t *testing.T) {
 }
 
 func TestShouldRotateWithOffset(t *testing.T) {
-	// Interval = 60 , Offset = 30
+	// Interval = 60, Offset = 30
 	// -> true if i == 30, 90, ..., otherwise false
 	config := &Config{Rcap: RcapConfig{Interval: 60, Offset: 30}}
 	writer := &Writer{config: config}
@@ -75,10 +75,58 @@ func TestShouldRotateWithOffset(t *testing.T) {
 	}
 }
 
+func TestShouldRotateWithUTCOffset(t *testing.T) {
+	// Interval = 60, UTCOffset = 30
+	// -> true if i == 30, 90, ..., otherwise false
+	duration, _ := time.ParseDuration("30s")
+	config := &Config{Rcap: RcapConfig{Interval: 60, UTCOffset: duration}}
+	writer := &Writer{config: config}
+
+	for i := int64(86401); i <= 86400+120; i++ {
+		if i == 86401 || i == 86400+30 || i == 86400+90 {
+			if writer.shouldRotate(i) != true {
+				t.Errorf("'true' is expected, but got 'false' (ts=%d).", i)
+			}
+		} else {
+			if writer.shouldRotate(i) != false {
+				t.Errorf("'false' is expected, but got 'true' (ts=%d).", i)
+			}
+		}
+
+		if writer.shouldRotate(i) {
+			writer.updateLastRotTime(i)
+		}
+	}
+}
+
 func TestShouldRotateDailyWithOffset(t *testing.T) {
-	// Interval = 86400 , Offset = 54000
+	// Interval = 86400, Offset = 54000
 	// -> true if i == 54000, 140400, ..., otherwise false
 	config := &Config{Rcap: RcapConfig{Interval: 86400, Offset: 54000}}
+	writer := &Writer{config: config}
+
+	for i := int64(86401); i <= 86400+86400*2; i++ {
+		if i == 86401 || i == (86400*2-32400) || i == (86400*3-32400) {
+			if writer.shouldRotate(i) != true {
+				t.Errorf("'true' is expected, but got 'false' (ts=%d).", i)
+			}
+		} else {
+			if writer.shouldRotate(i) != false {
+				t.Errorf("'false' is expected, but got 'true' (ts=%d)", i)
+			}
+		}
+
+		if writer.shouldRotate(i) {
+			writer.updateLastRotTime(i)
+		}
+	}
+}
+
+func TestShouldRotateDailyWithUTCOffset(t *testing.T) {
+	// Interval = 86400, UTCOffset = 9h
+	// -> true if i == 54000, 140400, ..., otherwise false
+	duration, _ := time.ParseDuration("9h")
+	config := &Config{Rcap: RcapConfig{Interval: 86400, UTCOffset: duration}}
 	writer := &Writer{config: config}
 
 	for i := int64(86401); i <= 86400+86400*2; i++ {

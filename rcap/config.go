@@ -42,7 +42,8 @@ type RcapConfig struct {
 	Timezone      string         `toml:"timezone" default:"UTC" validate:"timezone"`         // Timezone used for FileFmt.
 	Location      *time.Location // Location data (i.e., Timezone)
 	Interval      int64          `toml:"interval" default:"60" validate:"gte=1"`               // Rotation interval (in second).
-	Offset        int64          `toml:"offset" default:"0" validate:"gte=0,ltfield=Interval"` // Rotation offset (in second).
+	Offset        int64          `toml:"offset" default:"0" validate:"gte=0,ltfield=Interval"` // Deprecated: Rotation offset (in second).
+	UTCOffset     time.Duration  `toml:"utcOffset" default:"0"`                                // Rotation offset from UTC (in second).
 	Sampling      float64        `toml:"sampling" default:"1.0" validate:"gte=0,lte=1"`        // Sampling rate.
 	SamplingMode  bool           // Sampling mode.
 	LogFile       string         `toml:"logFile" default:""`            // Deprecated: Log file.
@@ -85,6 +86,7 @@ func (c *Config) PrintToLog() {
 	log.Printf("  - timezone:	%v (location: %v)\n", r.Timezone, r.Location)
 	log.Printf("  - interval:	%v\n", r.Interval)
 	log.Printf("  - offset:	%v\n", r.Offset)
+	log.Printf("  - utcOffset:	%v\n", r.UTCOffset)
 	log.Printf("  - sampling:	%v (samplingMode: %v)\n", r.Sampling, r.SamplingMode)
 	log.Printf("  - useSystemTime:	%v\n", r.UseSystemTime)
 	log.Printf("=====================\n")

@@ -58,13 +58,37 @@ func (w *Writer) updateLastRotTime(ts int64) {
 	c := &w.config.Rcap
 
 	if w.lastRotTime == 0 {
-		rotTime := (ts / c.Interval * c.Interval) + c.Offset
-		if ts < rotTime {
-			rotTime -= c.Interval
+		var rotTime int64
+		if c.UTCOffset != 0 {
+			utcOffset := int64(c.UTCOffset.Seconds())
+			rotTime = ((ts / c.Interval) * c.Interval) - utcOffset
+			for ts < rotTime {
+				rotTime -= c.Interval
+			}
+			for (ts - c.Interval) > rotTime {
+				rotTime += c.Interval
+			}
+		} else {
+			// Offset >= 0
+			rotTime = ((ts / c.Interval) * c.Interval) + c.Offset
+			if ts < rotTime {
+				rotTime -= c.Interval
+			}
 		}
 		w.lastRotTime = rotTime
 	} else {
 		w.lastRotTime += c.Interval
+	}
+
+	// for debug
+	if c.Location != nil {
+		tm := time.Unix(w.lastRotTime, 0)
+		tmLoc := tm.In(c.Location)
+		tmNext := time.Unix(w.lastRotTime+c.Interval, 0)
+		tmNextLoc := tmNext.In(c.Location)
+		log.Printf("rotation time: last=%v, next=%v", tmLoc, tmNextLoc)
+	} else {
+		log.Printf("rotation time: last=%v", w.lastRotTime)
 	}
 }
 
@@ -115,7 +139,7 @@ func (w *Writer) Update(ts int64) error {
 		w.updateLastRotTime(ts)
 
 		// Fill datetime format in file name format.
-		fileName := w.newFileName(ts)
+		fileName := w.newFileName(w.lastRotTime)
 		isNewFile := !FileExists(fileName)
 
 		// Make a directory for PCAP files.
