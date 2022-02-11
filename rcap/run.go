@@ -124,7 +124,7 @@ CAPTURE_LOOP:
 		err = writer.Update(curTime)
 		if err != nil {
 			log.Printf("failed to update writer: %v", err)
-			continue
+			return err
 		}
 
 		if pkterr != nil {
