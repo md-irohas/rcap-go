@@ -1,15 +1,19 @@
 # SYSTEMD unit file.
 
 [Unit]
-Description=rcap: Packet Dump Utility
-After=network.target
+Description=rcap: Packet Capture
+After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/sbin/rcap -c /etc/rcap.toml
+ExecStart=/usr/local/sbin/rcap -c /etc/rcap/rcap.toml
 ExecReload=/bin/kill -SIGHUP ${MAINPID}
 KillSignal=SIGINT
 Restart=on-failure
+RestartSec=1s
+AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
+User=nobody
+Group=nogroup
 
 [Install]
 WantedBy=multi-user.target
