@@ -18,7 +18,7 @@ bpfRules = "ip"
 
 # Filename of pcap file [default: "pcap/%Y%m%d/%Y%m%d-%H%M00.pcap", type: string].
 # Formats of date and time (e.g. %Y, %m ...) will be filled (see man strftime)
-fileFmt = "dump/traffic-%Y%m%d%%H%M%S.pcap"
+fileFmt = "dump/traffic-%Y%m%d%H%M%S.pcap"
 
 # Append packets to the existing file or not [default: true, type: boolean].
 # If true, packets are appended to the file when the file exists (this is
