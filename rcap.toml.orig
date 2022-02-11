@@ -1,49 +1,45 @@
 [rcap]
 
-# device name to listen on (e.g. en0, eth0)
-# if `device` is blank, select the first device out of devices which are
-# found in the machine.
+# Device name to listen on (e.g. en0, eth0) [required, type:string]
 device = "any"
 
-# snapshot length
-# capture `snaplen` bytes of packets from interface.
+# Snapshot length [default: 65535, type: integer, snaplen >= 0]
+# `snaplen` bytes of packets are captured.
 snaplen = 65535
 
-# flag to put into promiscuous mode or not.
+# Promiscuous mode or not [default: true, type: boolean]
 promisc = true
 
-# timeout for reading packets from device (millisecond).
+# Timeout for reading packets from device (millisecond) [default: 500, type: integer, 1<= toMs <= 500].
 toMs = 100
 
-# BPF rules (see man pcap-filter)
+# BPF rules (see man pcap-filter) [default: "", type: string]
 bpfRules = "ip"
 
-# filename of pcap.
-# format of date and time (e.g. %Y, %m ...) will be converted (see man
-# strftime)
-fileFmt = "dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap"
+# Filename of pcap file [default: "pcap/%Y%m%d/%Y%m%d-%H%M00.pcap", type: string].
+# Formats of date and time (e.g. %Y, %m ...) will be filled (see man strftime)
+fileFmt = "dump/traffic-%Y%m%d%%H%M%S.pcap"
 
+# Append packets to the existing file or not [default: true, type: boolean].
 # If true, packets are appended to the file when the file exists (this is
-# default in 0.2). Otherwise, another file with suffix (e.g. some-file-1.pcap)
+# default in v0.2). Otherwise, another file with suffix (e.g. some-file-1.pcap)
 # is created (this was default in v0.1). Note that the snaplen and linktype
 # must be the same as the existing file.
 fileAppend = true
 
-# timezone.
-# see https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
+# Timezone [default: "UTC", type: string]
+# See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 timezone = "Asia/Tokyo"
 
-# rotation interval (in second)
-# pcap file will be rotated every `interval` seconds. if `interval` is zero,
-# pcap file won't be rotated forever.
-interval = 60
+# Rotation interval (in second) [default: 60, type: integer, interval >= 1]
+# Pcap file will be rotated every `interval` seconds. If `interval` is zero, pcap file won't be rotated forever.
+interval = 86400
 
-# DEPRECATED: rotation interval offset (in second)
-# This is deprecated because it is hard to understand its behaviour. Use
-# utcoffset instead.
+# DEPRECATED: Rotation interval offset (in second) [default: 0, type: integer, 0 <= offset < interval]
+# This is deprecated because it is hard to understand its behaviour. Use utcoffset instead.
 offset = 0
 
-# rotation interval offset from UTC (Duration type in Golang).
+# Rotation interval offset from UTC (Duration type in Golang) [default: "0", type: string]
 #
 # Example:
 #   9h      9 hours
@@ -58,14 +54,13 @@ offset = 0
 # considered).
 utcOffset = "9h"
 
-# sampling rate [0, 1]
-# the value must be float (i.e., good: 1.0 bad: 1)
+# Sampling rate [default: 1.0, type: float, 0.0 <= sampling <= 1.0]
+# NOTE: The value must be float (i.e., 1.0 is OK, 1 is NG)
 sampling = 1.0
 
-# filename of log.
-# if `logFile` is blank, logging message will be shown in stdout.
+# Filename of log [default: "", type: string]
+# If `logFile` is blank, logging message will be shown in stdout.
 logFile = ""
 
-# use system time as a time source of rotation.
-# default: use packet-captured time
+# Use system time as a time source of rotation [default: false, type: boolean]
 useSystemTime = false
