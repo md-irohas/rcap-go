@@ -37,9 +37,9 @@ type RcapConfig struct {
 	BpfRules string `toml:"bpfRules" default:""`                         // BPF rules.
 
 	// Params for this program.
-	FileFmt       string         `toml:"fileFmt" default:"pcap/%Y%m%d/%Y%m%d-%H%M00.pcapng"` // Path to PCAP files.
-	FileAppend    bool           `toml:"fileAppend" default:"true"`                          // Append data if the file exists.
-	Timezone      string         `toml:"timezone" default:"UTC" validate:"timezone"`         // Timezone used for FileFmt.
+	FileFmt       string         `toml:"fileFmt" default:"pcap/%Y%m%d/%Y%m%d-%H%M00.pcap"` // Path to PCAP files.
+	FileAppend    bool           `toml:"fileAppend" default:"true"`                        // Append data if the file exists.
+	Timezone      string         `toml:"timezone" default:"UTC" validate:"timezone"`       // Timezone used for FileFmt.
 	Location      *time.Location // Location data (i.e., Timezone)
 	Interval      int64          `toml:"interval" default:"60" validate:"gte=1"`               // Rotation interval (in second).
 	Offset        int64          `toml:"offset" default:"0" validate:"gte=0,ltfield=Interval"` // Deprecated: Rotation offset (in second).
