@@ -32,12 +32,12 @@ func TestConfigDefaultValues(t *testing.T) {
 			Promisc:       true,
 			ToMs:          100,
 			BpfRules:      "",
-			FileFmt:       "pcap/%Y%m%d/%Y%m%d-%H%M00.pcapng",
+			FileFmt:       "pcap/%Y%m%d/%Y%m%d-%H%M00.pcap",
 			FileAppend:    true,
 			Timezone:      "UTC",
 			Interval:      60,
 			Offset:        0,
-			Sampling:      1,
+			Sampling:      1.0,
 			LogFile:       "",
 			UseSystemTime: false,
 		},
@@ -45,6 +45,8 @@ func TestConfigDefaultValues(t *testing.T) {
 
 	if !cmp.Equal(got, expected) {
 		t.Errorf("'%#v' is expected, but got '%#v'.", got, expected)
+		// diff := cmp.Diff(got, expected)
+		// t.Errorf("diff: %v", diff)
 	}
 }
 
@@ -55,8 +57,8 @@ func TestCheckConfig(t *testing.T) {
 	// r.SnapLen = -1
 	r.ToMs = 1000
 	r.Timezone = "invalid-timezone"
-	r.Interval = 0
-	r.Offset = 30
+	r.Interval = -1
+	r.Offset = -1
 	r.Sampling = 10
 
 	err := c.CheckAndFormat()

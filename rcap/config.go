@@ -41,10 +41,10 @@ type RcapConfig struct {
 	FileAppend    bool           `toml:"fileAppend" default:"true"`                        // Append data if the file exists.
 	Timezone      string         `toml:"timezone" default:"UTC" validate:"timezone"`       // Timezone used for FileFmt.
 	Location      *time.Location // Location data (i.e., Timezone)
-	Interval      int64          `toml:"interval" default:"60" validate:"gte=1"`               // Rotation interval (in second).
-	Offset        int64          `toml:"offset" default:"0" validate:"gte=0,ltfield=Interval"` // Deprecated: Rotation offset (in second).
-	UTCOffset     time.Duration  `toml:"utcOffset" default:"0"`                                // Rotation offset from UTC (in second).
-	Sampling      float64        `toml:"sampling" default:"1.0" validate:"gte=0,lte=1"`        // Sampling rate.
+	Interval      int64          `toml:"interval" default:"60" validate:"gte=0"`        // Rotation interval (in second).
+	Offset        int64          `toml:"offset" default:"0" validate:"gte=0"`           // Deprecated: Rotation offset (in second).
+	UTCOffset     time.Duration  `toml:"utcOffset" default:"0"`                         // Rotation offset from UTC (in second).
+	Sampling      float64        `toml:"sampling" default:"1.0" validate:"gte=0,lte=1"` // Sampling rate.
 	SamplingMode  bool           // Sampling mode.
 	LogFile       string         `toml:"logFile" default:""`            // Deprecated: Log file.
 	UseSystemTime bool           `toml:"useSystemTime" default:"false"` // Use system time or packet-captured time.

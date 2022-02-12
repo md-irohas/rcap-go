@@ -31,8 +31,8 @@ fileAppend = true
 # See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 timezone = "Asia/Tokyo"
 
-# Rotation interval (in second) [default: 60, type: integer, interval >= 1]
-# Pcap file will be rotated every `interval` seconds. If `interval` is zero, pcap file won't be rotated forever.
+# Rotation interval (in second) [default: 60, type: integer, interval >= 0]
+# Pcap file will be rotated every `interval` seconds. If `interval` is 0, pcap file won't be rotated forever.
 interval = 86400
 
 # DEPRECATED: Rotation interval offset (in second) [default: 0, type: integer, 0 <= offset < interval]
