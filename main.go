@@ -34,12 +34,12 @@ func main() {
 	flag.UintVar(&r.ToMs, "t", 100, "timeout of reading packets from interface [milli-sec].")
 	flag.StringVar(&r.BpfRules, "f", "", "BPF rules.")
 	flag.StringVar(&r.FileFmt, "w", "dump/%Y%m%d/traffic-%Y%m%d%H%M%S.pcap", "format of output file.")
-	flag.BoolVar(&r.FileAppend, "append", true, "append data to a file if it exists.")
+	flag.BoolVar(&r.FileAppend, "append", true, "append data to a file if it exists. to disable, add -append=false as argument.")
 	flag.StringVar(&r.Timezone, "z", "UTC", "timezone used for output file.")
-	flag.Int64Var(&r.Interval, "T", 60, "rotation interval [sec].")
-	flag.Int64Var(&r.Offset, "offset", 0, "[deprecated] rotation interval offset [sec].")
-	flag.DurationVar(&r.UTCOffset, "utcoffset", 0, "rotation interval offset from UTC [sec]. The negative value is also available.")
-	flag.Float64Var(&r.Sampling, "sampling", 1, "sampling rate (0 <= p <= 1).")
+	flag.Int64Var(&r.Interval, "T", 60, "rotation interval [sec]. to disable rotation, set 0.")
+	flag.Int64Var(&r.Offset, "offset", 0, "[deprecated] rotation interval offset [sec]. use -utcoffset instead.")
+	flag.DurationVar(&r.UTCOffset, "utcoffset", 0, "rotation interval offset from UTC. The negative value is also available. see https://pkg.go.dev/time#Duration for the format.")
+	flag.Float64Var(&r.Sampling, "sampling", 1.0, "sampling rate (0.0 <= p <= 1.0).")
 	flag.StringVar(&r.LogFile, "L", "", "[deprecated] log file.")
 	flag.BoolVar(&r.UseSystemTime, "S", false, "use system time as a time source of rotation (default: use packet-captured time).")
 	flag.Parse()
@@ -60,7 +60,7 @@ func main() {
 
 		config = fileConfig
 	} else {
-		log.Println("load config fromr command-line.")
+		log.Println("load config from command-line.")
 
 		// Check config parsed from command-line.
 		err = argsConfig.CheckAndFormat()
