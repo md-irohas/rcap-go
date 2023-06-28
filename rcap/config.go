@@ -29,7 +29,7 @@ type RcapConfig struct {
 	BpfRules string `toml:"bpfRules" default:""`                         // BPF rules.
 
 	// Params for this program.
-	FileFmt       string         `toml:"fileFmt" default:"pcap/%Y%m%d/%Y%m%d-%H%M00.pcap"` // Path to PCAP files.
+	FileFmt       string         `toml:"fileFmt" default:"dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap"` // Path to PCAP files.
 	FileAppend    bool           `toml:"fileAppend" default:"true"`                        // Append data if the file exists.
 	Timezone      string         `toml:"timezone" default:"UTC" validate:"timezone"`       // Timezone used for FileFmt.
 	Location      *time.Location // Location data (i.e., Timezone)
