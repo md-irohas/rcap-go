@@ -10,14 +10,6 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
-var (
-	ErrEmptyFilename = errors.New("empty filename")  // Empty file.
-	ErrFileNotFound  = errors.New("file not found")  // File not found.
-	ErrFileRead      = errors.New("file-read error") // File-read failure.
-	ErrInvalidToml   = errors.New("invalid toml")    // Invalid TOML format.
-	ErrInvalidConfig = errors.New("invalid config")  // Invalid config.
-)
-
 // Config struct is a root section of rcap-go configuration.
 type Config struct {
 	// Filename which has this configuration.
@@ -55,21 +47,19 @@ type RcapConfig struct {
 func (c *Config) CheckAndFormat() error {
 	validate := validator.New()
 
-	var err error
-	if err = validate.Struct(c); err != nil {
+	if err := validate.Struct(c); err != nil {
 		return err
 	}
 
-	c.Rcap.Location, err = time.LoadLocation(c.Rcap.Timezone)
-	if err != nil {
-		// validator checks timezone value, so here is unreachable.
-		return err
-	}
+	// no error is returned from LoadLocation because validator checks timezone
+	// value.
+	c.Rcap.Location, _ = time.LoadLocation(c.Rcap.Timezone)
 	c.Rcap.SamplingMode = (c.Rcap.Sampling < 1.0)
 
 	return nil
 }
 
+// PrintToLog method prints config values to its log.
 func (c *Config) PrintToLog() {
 	r := &c.Rcap
 
@@ -94,29 +84,16 @@ func (c *Config) PrintToLog() {
 
 // LoadConfig loads a configuration from the given filename and returns an
 // instance of Config struct.
-//
-// LoadConfig returns the following errors:
-// - ErrEmptyFilename: when the filename is an empty string.
-// - ErrFileNotFound: when the filename does not exist on the filesystem.
-// - ErrFileRead: when os.Readfile fails to read from the file.
-// - ErrInvalidToml: when the TOML file is invalid format.
-// - ErrInvalidConfig: when the config in the file is invalid.
 func LoadConfig(filename string) (*Config, error) {
-	if filename == "" {
-		return nil, ErrEmptyFilename
-	}
-	if !FileExists(filename) {
-		return nil, ErrFileNotFound
-	}
-
+	// empty filename and file-not-found error are handled here.
 	str, err := os.ReadFile(filename)
 	if err != nil {
-		return nil, ErrFileRead
+		return nil, err
 	}
 
 	config := &Config{Filename: filename}
 	if err := toml.Unmarshal(str, config); err != nil {
-		return nil, ErrInvalidToml
+		return nil, err
 	}
 
 	if err := config.CheckAndFormat(); err != nil {
@@ -126,7 +103,7 @@ func LoadConfig(filename string) (*Config, error) {
 				log.Println(valErr.Error())
 			}
 		}
-		return nil, ErrInvalidConfig
+		return nil, errors.New("invalid config values")
 	}
 
 	return config, nil
