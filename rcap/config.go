@@ -22,24 +22,24 @@ type Config struct {
 // RcapConfig struct is a main section of rcap-go configuration.
 type RcapConfig struct {
 	// Params for libpcap.
-	Device   string `toml:"device" validate:"required"`                  // Device name.
+	Device   string `toml:"device" default:"any" validate:"required"`    // Device name.
 	SnapLen  uint   `toml:"snaplen" default:"65535" validate:"gte=0"`    // Snap length.
 	Promisc  bool   `toml:"promisc" default:"true"`                      // Promiscuous mode.
 	ToMs     uint   `toml:"toMs" default:"100" validate:"gte=1,lte=500"` // Timeout when no packets are captured.
 	BpfRules string `toml:"bpfRules" default:""`                         // BPF rules.
 
 	// Params for this program.
-	FileFmt       string         `toml:"fileFmt" default:"dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap"` // Path to PCAP files.
-	FileAppend    bool           `toml:"fileAppend" default:"true"`                        // Append data if the file exists.
-	Timezone      string         `toml:"timezone" default:"UTC" validate:"timezone"`       // Timezone used for FileFmt.
+	FileFmt       string         `toml:"fileFmt" default:"dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap" validate:"filepath"` // Path to PCAP files.
+	FileAppend    bool           `toml:"fileAppend" default:"true"`                                                   // Append data if the file exists.
+	Timezone      string         `toml:"timezone" default:"UTC" validate:"timezone"`                                  // Timezone used for FileFmt.
 	Location      *time.Location // Location data (i.e., Timezone)
 	Interval      int64          `toml:"interval" default:"60" validate:"gte=0"`        // Rotation interval (in second).
 	Offset        int64          `toml:"offset" default:"0" validate:"gte=0"`           // Deprecated: Rotation offset (in second).
 	UTCOffset     time.Duration  `toml:"utcOffset" default:"0"`                         // Rotation offset from UTC (in second).
 	Sampling      float64        `toml:"sampling" default:"1.0" validate:"gte=0,lte=1"` // Sampling rate.
 	SamplingMode  bool           // Sampling mode.
-	LogFile       string         `toml:"logFile" default:""`            // Deprecated: Log file.
-	UseSystemTime bool           `toml:"useSystemTime" default:"false"` // Use system time or packet-captured time.
+	LogFile       string         `toml:"logFile" default:"" validate:"omitempty,filepath"` // Deprecated: Log file.
+	UseSystemTime bool           `toml:"useSystemTime" default:"false"`                    // Use system time or packet-captured time.
 }
 
 // CheckAndFormat method checks and formats the values in the configuration,
