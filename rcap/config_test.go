@@ -1,7 +1,6 @@
 package rcap
 
 import (
-	"fmt"
 	"testing"
 
 	"github.com/go-playground/validator/v10"
@@ -9,16 +8,16 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
+func TestPrintToLog(t *testing.T) {
+	config := &Config{Filename: "test"}
+	config.PrintToLog()
+}
+
+// make config with default values.
 func makeConfig() *Config {
 	config := &Config{Filename: ""}
 	toml.Unmarshal([]byte(`[rcap]`), config)
-
 	return config
-}
-
-func TestPrint(t *testing.T) {
-	config := &Config{Filename: "test"}
-	config.PrintToLog()
 }
 
 func TestConfigDefaultValues(t *testing.T) {
@@ -27,17 +26,19 @@ func TestConfigDefaultValues(t *testing.T) {
 	expected := &Config{
 		Filename: "",
 		Rcap: RcapConfig{
-			Device:        "",
+			Device:        "any",
 			SnapLen:       65535,
 			Promisc:       true,
 			ToMs:          100,
 			BpfRules:      "",
-			FileFmt:       "pcap/%Y%m%d/%Y%m%d-%H%M00.pcap",
+			FileFmt:       "dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap",
 			FileAppend:    true,
 			Timezone:      "UTC",
+			Location:      nil, // not set yet
 			Interval:      60,
 			Offset:        0,
 			Sampling:      1.0,
+			SamplingMode:  false, // not set yet (default)
 			LogFile:       "",
 			UseSystemTime: false,
 		},
@@ -50,51 +51,69 @@ func TestConfigDefaultValues(t *testing.T) {
 	}
 }
 
-func TestCheckConfig(t *testing.T) {
+func TestConfigCheckAndFormat(t *testing.T) {
+	c := makeConfig()
+
+	if err := c.CheckAndFormat(); err != nil {
+		t.Errorf("The default values are expected to be valid, but invalid: %v", err)
+	}
+
+	// check if Location is set.
+	if c.Rcap.Location == nil {
+		t.Errorf("The 'Location' value is still nil")
+	}
+}
+
+func TestConfigCheckAndFormatWithFailure(t *testing.T) {
 	c := makeConfig()
 	r := &c.Rcap
-	r.Device = ""
-	// r.SnapLen = -1
-	r.ToMs = 1000
-	r.Timezone = "invalid-timezone"
-	r.Interval = -1
-	r.Offset = -1
-	r.Sampling = 10
+
+	// invalid config
+	r.Device = "" // required
+	// r.SnapLen = -1	// SnapLen > 0, SnapLen is uint.
+	r.ToMs = 1000                   // 0 < ToMs < 500
+	r.Timezone = "invalid-timezone" // not-timezone string
+	r.Interval = -1                 // Interval >= 0
+	r.Offset = -1                   // Offset >= 0
+	r.Sampling = 10.0               // 0.0 <= Sampling <= 1.0
+	r.LogFile = "/some/dir/"        // empty or filepath
 
 	err := c.CheckAndFormat()
 	valErrs, _ := err.(validator.ValidationErrors)
 
-	if len(valErrs) != 6 {
+	if len(valErrs) != 7 {
 		t.Errorf("%d errors are expected, but %d errors are got.", 6, len(valErrs))
 	}
 
-	for _, valErr := range valErrs {
-		t.Logf("validation error: %#v", valErr)
-	}
+	// for _, valErr := range valErrs {
+	// 	t.Logf("validation error: %#v", valErr)
+	// }
 }
 
 func TestLoadConfig(t *testing.T) {
+	if _, err := LoadConfig("testdata/rcap-good.toml"); err != nil {
+		t.Errorf("nil is expected, but got '%v'.", err)
+	}
+}
+
+func TestLoadConfigWithFailure(t *testing.T) {
 	cases := []struct {
 		// in
 		filename string
 		// out
-		err error
+		errMsg string
 	}{
-		{"", ErrEmptyFilename},
-		{"file-not-found", ErrFileNotFound},
-		{"testdata/rcap-invalid-toml.toml", ErrInvalidToml},
-		{"testdata/rcap-invalid-config.toml", ErrInvalidConfig},
-		{"testdata/rcap-good.toml", nil},
+		{"", "open : no such file or directory"},
+		{"file-not-found", "open file-not-found: no such file or directory"},
+		{"testdata/rcap-invalid-toml.toml", "(2, 1): parsing error: keys cannot contain { character"},
+		{"testdata/rcap-invalid-config.toml", "invalid config values"},
 	}
 
 	for _, c := range cases {
-		fmt.Println("test: " + c.filename)
-		if config, err := LoadConfig(c.filename); err != c.err {
-			if c.err == nil {
-				if c.filename != config.Filename {
-					t.Errorf("'%#v' is expected, but got '%s'.", c.filename, config.Filename)
-				}
-			}
+		t.Logf("test with '%v'", c.filename)
+
+		if _, err := LoadConfig(c.filename); err.Error() != c.errMsg {
+			t.Errorf("'%#v' is expected, but got '%v'.", c.errMsg, err.Error())
 		}
 	}
 }
