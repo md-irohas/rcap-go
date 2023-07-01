@@ -5,6 +5,8 @@ import (
 )
 
 func TestRandom(t *testing.T) {
+	// The Random function is just a wrapper of math.rand packet,
+	// so this test case only checks its return value once.
 	value := Random()
 	if value < 0 || 1 <= value {
 		t.Errorf("A number in [0.0, 1.0) is expected, but got %v.", value)

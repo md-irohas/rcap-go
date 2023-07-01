@@ -20,6 +20,7 @@ type Config struct {
 }
 
 // RcapConfig struct is a main section of rcap-go configuration.
+// TODO: Add validator of Device and BpfRules.
 type RcapConfig struct {
 	// Params for libpcap.
 	Device   string `toml:"device" default:"any" validate:"required"`    // Device name.
