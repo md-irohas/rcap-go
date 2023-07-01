@@ -24,7 +24,27 @@ func makeReader(t *testing.T) *Reader {
 func TestNewReader(t *testing.T) {
 	c := makeConfig()
 
+	// OpenLive function in NewReader requires root privilege,
+	// so the following call fails.
 	if _, err := NewReader(c); err == nil {
+		t.Errorf("err is expected, but got '%v'.", err)
+	}
+
+	// Instead, openAndSetUpReader internal function is ready
+	// to test with a pcap file.
+	c.Rcap.BpfRules = "ip"
+	if _, err := openAndSetUpReader(c, "testdata/sample.pcap"); err != nil {
+		t.Errorf("'%v' is expected, but got '%v'.", nil, err)
+	}
+
+	// file not found
+	if _, err := openAndSetUpReader(c, "testdata/not-found.pcap"); err == nil {
+		t.Errorf("err is expected, but got '%v'.", err)
+	}
+
+	// invalid BPF
+	c.Rcap.BpfRules = "invalid bpf"
+	if _, err := openAndSetUpReader(c, "testdata/sample.pcap"); err == nil {
 		t.Errorf("err is expected, but got '%v'.", err)
 	}
 }

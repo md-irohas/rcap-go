@@ -15,15 +15,22 @@ type Reader struct {
 	numPackets uint
 }
 
-// NewReader creates a new struct Reader. This function calls pcap.OpenLive and
-// applies SetBPFFilter method to the returned handle based on the given Config
-// struct.
-func NewReader(config *Config) (*Reader, error) {
+func openAndSetUpReader(config *Config, _pcap string) (*Reader, error) {
 	c := &config.Rcap
 
-	handle, err := pcap.OpenLive(c.Device, int32(c.SnapLen), c.Promisc, time.Duration(c.ToMs)*time.Millisecond)
-	if err != nil {
-		return nil, err
+	var handle *pcap.Handle
+	var err error
+
+	if _pcap == "" {
+		handle, err = pcap.OpenLive(c.Device, int32(c.SnapLen), c.Promisc, time.Duration(c.ToMs)*time.Millisecond)
+		if err != nil {
+			return nil, err
+		}
+	} else {
+		handle, err = pcap.OpenOffline(_pcap)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	if c.BpfRules != "" {
@@ -43,6 +50,13 @@ func NewReader(config *Config) (*Reader, error) {
 	}
 
 	return reader, nil
+}
+
+// NewReader creates a new struct Reader. This function calls pcap.OpenLive and
+// applies SetBPFFilter method to the returned handle based on the given Config
+// struct.
+func NewReader(config *Config) (*Reader, error) {
+	return openAndSetUpReader(config, "")
 }
 
 // LinkType returns the layers.LinkType of the interface.
