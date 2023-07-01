@@ -8,9 +8,16 @@ import (
 	"github.com/google/gopacket/pcap"
 )
 
-func makeReader() *Reader {
+func makeReader(t *testing.T) *Reader {
+	var err error
+
 	reader := &Reader{}
-	reader.handle, _ = pcap.OpenOffline("testdata/sample.pcap")
+	reader.handle, err = pcap.OpenOffline("testdata/sample.pcap")
+
+	if err != nil {
+		t.Fatalf("failed to make Reader for test: %v", err)
+	}
+
 	return reader
 }
 
@@ -23,7 +30,7 @@ func TestNewReader(t *testing.T) {
 }
 
 func TestReaderLinkType(t *testing.T) {
-	r := makeReader()
+	r := makeReader(t)
 	if r.LinkType() != layers.LinkTypeEthernet {
 		t.Errorf("'%v' is expected, but got '%v'.", layers.LinkTypeEthernet, r.LinkType())
 	}
@@ -50,7 +57,7 @@ func TestReaderResetNumPackets(t *testing.T) {
 }
 
 func TestReaderReadPacket(t *testing.T) {
-	r := makeReader()
+	r := makeReader(t)
 
 	expectedPayload := []byte("this is a test packet.\n")
 	expectedTime := int64(1688205150)
@@ -75,6 +82,6 @@ func TestReaderReadPacket(t *testing.T) {
 }
 
 func TestReaderClose(t *testing.T) {
-	r := makeReader()
+	r := makeReader(t)
 	r.Close()
 }
