@@ -131,7 +131,7 @@ func (w *Writer) openWriter(ts int64) error {
 		return err
 	}
 
-	log.Printf("dump packets into a file: %v", fileName)
+	log.Printf("dump packets into a file: %v (append: %v)", fileName, !isNewFile)
 
 	// Make a new writer.
 	writer := pcapgo.NewWriter(file)

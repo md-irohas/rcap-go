@@ -1,13 +1,15 @@
 package rcap
 
 import (
-	"io"
+	"errors"
+	"fmt"
 	"log"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
 
+	"github.com/google/gopacket"
 	"github.com/google/gopacket/pcap"
 )
 
@@ -16,13 +18,163 @@ const (
 	SamplingDump = 10000
 )
 
-func Run(config *Config) error {
-	var reader *Reader
-	var writer *Writer
+type Runner struct {
+	config             *Config
+	reader             *Reader
+	writer             *Writer
+	doExit             bool
+	doReload           bool
+	numCapturedPackets uint64
+	numSampledPackets  uint64
+}
+
+func NewRunner(c *Config) (*Runner, error) {
+	r := &Runner{
+		config:             c,
+		doExit:             false,
+		doReload:           false,
+		numCapturedPackets: 0,
+		numSampledPackets:  0,
+	}
+
+	return r, nil
+}
+
+func (r *Runner) Reload() error {
+	if r.config.Filename == "" {
+		return errors.New("no config file is set.")
+	}
+
+	newConfig, err := LoadConfig(r.config.Filename)
+	if err != nil {
+		return err
+	}
+
+	// TODO: re-init reader and writer only when configuration has changed.
+	r.Close()
+
+	log.Println("reload config and use the new config.")
+	r.config = newConfig
+	r.config.PrintToLog()
+
+	return nil
+}
+
+func (r *Runner) setupReaderAndWriter() error {
 	var err error
 
-	doExit := false
-	doReload := false
+	if r.reader == nil {
+		r.reader, err = NewReader(r.config)
+		if err != nil {
+			return err
+		}
+	}
+
+	if r.writer == nil {
+		// The current NewWriter returns no error.
+		r.writer, _ = NewWriter(r.config, r.reader.LinkType())
+	}
+
+	return nil
+}
+
+func (r *Runner) getTimestamp(capinfo gopacket.CaptureInfo, pkterr error) int64 {
+	if r.config.Rcap.UseSystemTime {
+		return time.Now().Unix()
+	}
+
+	if pkterr != nil {
+		return time.Now().Unix()
+	}
+
+	return capinfo.Timestamp.Unix()
+}
+
+func (r *Runner) isSamplingMode() bool {
+	return r.config.Rcap.SamplingMode
+}
+
+func (r *Runner) doSample() bool {
+	return Random() < r.config.Rcap.Sampling
+}
+
+func (r *Runner) Run() error {
+	for !r.doExit {
+		if r.doReload {
+			if err := r.Reload(); err != nil {
+				log.Printf("failed to reload config: %v", err)
+			}
+			r.doReload = false
+		}
+
+		err := r.setupReaderAndWriter()
+		if err != nil {
+			return fmt.Errorf("failed to setup reader/writer: %w", err)
+		}
+
+		data, capinfo, pkterr := r.reader.ReadPacket()
+		currentTime := r.getTimestamp(capinfo, pkterr)
+
+		err = r.writer.Update(currentTime)
+		if err != nil {
+			return fmt.Errorf("failed to update writer: %w", err)
+		}
+
+		if pkterr != nil {
+			switch pkterr {
+			case pcap.NextErrorTimeoutExpired:
+				// Go to next loop.
+				// Do NOT log messages when it is timeouted.
+				continue
+			default:
+				// Return error (unexpected error).
+				return fmt.Errorf("failed to read packet: %w", pkterr)
+			}
+		}
+
+		r.numCapturedPackets++
+		if r.isSamplingMode() {
+			doSample := r.doSample()
+
+			if doSample {
+				r.numSampledPackets++
+			}
+			if r.numCapturedPackets%SamplingDump == 0 {
+				samplingRatio := float32(r.numSampledPackets) / float32(r.numCapturedPackets) * 100
+				log.Printf("sampling result: %v/%v (%.2f%%)\n", r.numSampledPackets, r.numCapturedPackets, samplingRatio)
+			}
+			if !doSample {
+				continue
+			}
+		}
+
+		err = r.writer.WritePacket(capinfo, data)
+		if err != nil {
+			return fmt.Errorf("failed to write packet: %w", err)
+		}
+	}
+
+	return nil
+}
+
+func (r *Runner) Close() {
+	if r.reader != nil {
+		r.reader.Close()
+		r.reader = nil
+		log.Println("close reader.")
+	}
+	if r.writer != nil {
+		r.writer.Close()
+		r.writer = nil
+		log.Println("close writer.")
+	}
+}
+
+func Run(config *Config) error {
+	r, err := NewRunner(config)
+	if err != nil {
+		return err
+	}
 
 	// Trap signals.
 	log.Println("trap signals (send SIGHUP to reload, SIGINT or SIGTERM to exit).")
@@ -36,132 +188,14 @@ func Run(config *Config) error {
 
 			switch s {
 			case syscall.SIGHUP:
-				doReload = true
+				r.doReload = true
 			case syscall.SIGINT, syscall.SIGTERM:
-				doExit = true
+				r.doExit = true
 			}
 		}
 	}()
 
-	defer func() {
-		if reader != nil {
-			reader.Close()
-			log.Println("close reader.")
-		}
-		if writer != nil {
-			writer.Close()
-			log.Println("close writer.")
-		}
-	}()
+	defer r.Close()
 
-	var numSampledPackets, numCapturedPackets uint64 = 0, 0
-
-CAPTURE_LOOP:
-	for {
-		if doExit {
-			break CAPTURE_LOOP
-		}
-
-		// If the doReload flag is set, reload configurations from the file and
-		// close the current reader and writer. If configurations reloaded
-		// are invalid, do nothing.
-		if doReload {
-			if config.Filename == "" {
-				log.Println("failed to reload config. no config file is set.")
-			} else {
-				if newConfig, err := LoadConfig(config.Filename); err == nil {
-					// TODO: re-init reader and writer only when configuration has
-					// changed.
-					if reader != nil {
-						reader.Close()
-						reader = nil
-					}
-					if writer != nil {
-						writer.Close()
-						writer = nil
-					}
-
-					log.Println("reload config and use the new config.")
-					config = newConfig
-				} else {
-					log.Printf("failed to reload config: %v", err)
-					log.Println("use the previous config instead.")
-				}
-			}
-
-			config.PrintToLog()
-			doReload = false
-		}
-
-		// Create reader and writer instances if they are not ready.
-		if reader == nil {
-			reader, err = NewReader(config)
-			if err != nil {
-				return err
-			}
-		}
-		if writer == nil {
-			linkType := reader.LinkType()
-			writer, err = NewWriter(config, linkType)
-			if err != nil {
-				return err
-			}
-		}
-
-		data, capinfo, pkterr := reader.ReadPacket()
-
-		var curTime int64
-		if config.Rcap.UseSystemTime {
-			curTime = time.Now().Unix()
-		} else {
-			if pkterr != nil {
-				curTime = time.Now().Unix()
-			} else {
-				curTime = capinfo.Timestamp.Unix()
-			}
-		}
-
-		err = writer.Update(curTime)
-		if err != nil {
-			log.Printf("failed to update writer: %v", err)
-			return err
-		}
-
-		if pkterr != nil {
-			switch pkterr {
-			// Do NOT log messages when it is timeouted.
-			case pcap.NextErrorTimeoutExpired:
-			// The reader is already closed.
-			case io.EOF:
-				break CAPTURE_LOOP
-			default:
-				log.Printf("failed to read packet: %v", pkterr)
-			}
-
-			continue
-		}
-
-		numCapturedPackets++
-
-		if config.Rcap.SamplingMode {
-			sample := (Random() <= config.Rcap.Sampling)
-
-			if numCapturedPackets%SamplingDump == 0 {
-				log.Printf("sampling result: %d/%d\n", numSampledPackets, numCapturedPackets)
-			}
-
-			if sample {
-				numSampledPackets++
-			} else {
-				continue
-			}
-		}
-
-		err := writer.WritePacket(capinfo, data)
-		if err != nil {
-			log.Printf("failed to write packet: %v", err)
-		}
-	}
-
-	return nil
+	return r.Run()
 }
