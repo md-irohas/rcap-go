@@ -21,7 +21,6 @@ type Writer struct {
 	linkType    layers.LinkType
 	lastRotTime int64
 	numPackets  uint
-	closed      bool
 }
 
 // NewWriter returns a new instance of Writer.
@@ -31,14 +30,13 @@ func NewWriter(c *Config, linkType layers.LinkType) (*Writer, error) {
 		linkType:    linkType,
 		lastRotTime: 0,
 		numPackets:  0,
-		closed:      false,
 	}
 
 	return w, nil
 }
 
-// NumPackets returns the number of packets the Writer wrote to the file. The
-// number will be reset when the file is rotated.
+// NumPackets returns the number of packets the Writer wrote to the file.
+// The number will be reset when the file is rotated.
 func (w *Writer) NumPackets() uint {
 	return w.numPackets
 }
@@ -54,132 +52,157 @@ func (w *Writer) shouldRotate(ts int64) bool {
 	}
 }
 
-func (w *Writer) updateLastRotTime(ts int64) {
-	c := &w.config.Rcap
+func calcFirstRotTime(ts int64, interval int64, utcOffset time.Duration) int64 {
+	offset := int64(utcOffset.Seconds())
 
-	if w.lastRotTime == 0 {
-		var rotTime int64
-		if c.UTCOffset != 0 {
-			utcOffset := int64(c.UTCOffset.Seconds())
-			rotTime = ((ts / c.Interval) * c.Interval) - utcOffset
-			for ts < rotTime {
-				rotTime -= c.Interval
-			}
-			for (ts - c.Interval) > rotTime {
-				rotTime += c.Interval
-			}
-		} else {
-			// Offset >= 0
-			rotTime = ((ts / c.Interval) * c.Interval) + c.Offset
-			if ts < rotTime {
-				rotTime -= c.Interval
-			}
-		}
-		w.lastRotTime = rotTime
-	} else {
-		w.lastRotTime += c.Interval
+	rotTime := ((ts/interval)*interval + interval) - offset
+	for ts < rotTime {
+		rotTime -= interval
 	}
 
-	// for debug
+	return rotTime
+}
+
+func calcFirstRotTimeWithOffset(ts int64, interval int64, offset int64) int64 {
+	rotTime := ((ts/interval)*interval + interval) + offset
+
+	for ts < rotTime {
+		rotTime -= interval
+	}
+
+	return rotTime
+}
+
+// PrintRotLog prints the last rotation time and the next rotation time to log.
+func (w *Writer) PrintRotLog() {
+	c := w.config.Rcap
+
+	currentTime := time.Unix(w.lastRotTime, 0)
+	nextTime := time.Unix(w.lastRotTime+c.Interval, 0)
+
 	if c.Location != nil {
-		tm := time.Unix(w.lastRotTime, 0)
-		tmLoc := tm.In(c.Location)
-		tmNext := time.Unix(w.lastRotTime+c.Interval, 0)
-		tmNextLoc := tmNext.In(c.Location)
-		log.Printf("rotation time: last=%v, next=%v", tmLoc, tmNextLoc)
-	} else {
-		log.Printf("rotation time: last=%v", w.lastRotTime)
+		currentTime = currentTime.In(c.Location)
+		nextTime = nextTime.In(c.Location)
 	}
+
+	log.Printf("rotation time: last=%v, next=%v", currentTime, nextTime)
 }
 
-// newFileName returns a file name of the next PCAP file. The file name is made
-// from the Config.FileNameFormat, and if the file name already exists, this
-// function returns alternative filenames (e.g. foobar.pcap -> foobar-1.pcap)
-func (w *Writer) newFileName(ts int64) string {
-	c := &w.config.Rcap
+// newFileName returns a filename of PCAP file based on the given timestamp.
+func makeFileName(format string, ts int64, loc *time.Location, doAppend bool) string {
+	locTime := time.Unix(ts, 0).In(loc)
+	filename := strftime.Format(format, locTime)
 
-	// Convert unix time to location-aware time.
-	// NOTE: time.Unix(sec, nanosec)
-	tmpTime := time.Unix(ts, 0)
-	locTime := tmpTime.In(c.Location)
-
-	// Default file name.
-	fileName := strftime.Format(c.FileFmt, locTime)
-
-	if !c.FileAppend {
-		// If the file name already exists, find alternatives.
-		for i := 1; FileExists(fileName); i++ {
-			log.Println("file already exists:", fileName)
-
-			fmt := c.FileFmt
-			ext := filepath.Ext(fmt)
-			base := fmt[0 : len(fmt)-len(ext)]
-
-			// e.g. foobar.pcap -> foobar-1.pcap
-			newFmt := base + "-" + strconv.Itoa(i) + ext
-			fileName = strftime.Format(newFmt, locTime)
-		}
+	if doAppend {
+		return filename
 	}
 
-	return fileName
+	if !FileExists(filename) {
+		return filename
+	}
+
+	// If file exists, find alternative filename.
+	extension := filepath.Ext(filename)
+	baseFilename := filename[:len(filename)-len(extension)]
+
+	for i := 1; FileExists(filename); i++ {
+		log.Println("file already exists: ", filename)
+		filename = baseFilename + "-" + strconv.Itoa(i) + extension
+	}
+
+	return filename
 }
 
-// Update method update internal timestamp and rotates the file.
-func (w *Writer) Update(ts int64) error {
-	c := &w.config.Rcap
+func (w *Writer) openWriter(ts int64) error {
+	c := w.config.Rcap
 
-	if w.file != nil {
-		if w.shouldRotate(ts) {
-			w.file.Close()
-			w.file = nil
-		}
+	fileName := makeFileName(c.FileFmt, ts, c.Location, c.FileAppend)
+	isNewFile := !FileExists(fileName)
+
+	// Make a directory for PCAP files.
+	dirName := filepath.Dir(fileName)
+	if err := os.MkdirAll(dirName, 0755); err != nil {
+		return err
 	}
 
-	if w.file == nil {
-		w.updateLastRotTime(ts)
-
-		// Fill datetime format in file name format.
-		fileName := w.newFileName(w.lastRotTime)
-		isNewFile := !FileExists(fileName)
-
-		// Make a directory for PCAP files.
-		dirName := filepath.Dir(fileName)
-		if err := os.MkdirAll(dirName, 0755); err != nil {
-			return err
-		}
-
-		// Make a new file
-		file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-		if err != nil {
-			return err
-		}
-
-		log.Printf("capture %v packets.", w.numPackets)
-		log.Printf("dump packets into a file: %v", fileName)
-
-		// Make a new writer.
-		writer := pcapgo.NewWriter(file)
-		if isNewFile {
-			writer.WriteFileHeader(uint32(c.SnapLen), w.linkType)
-		}
-
-		w.numPackets = 0
-		w.file = file
-		w.writer = writer
+	// Make a new file.
+	file, err := os.OpenFile(fileName, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return err
 	}
+
+	log.Printf("dump packets into a file: %v", fileName)
+
+	// Make a new writer.
+	writer := pcapgo.NewWriter(file)
+	if isNewFile {
+		writer.WriteFileHeader(uint32(c.SnapLen), w.linkType)
+	}
+
+	w.numPackets = 0
+	w.file = file
+	w.writer = writer
 
 	return nil
 }
 
+// Update method updates internal timestamp and rotates the file.
+func (w *Writer) Update(ts int64) error {
+	c := &w.config.Rcap
+
+	// Never rotate.
+	if c.Interval == 0 {
+		if w.file == nil {
+			return w.openWriter(ts)
+		} else {
+			return nil
+		}
+	}
+
+	// First time.
+	if w.lastRotTime == 0 {
+		var rotTime int64
+		if c.UTCOffset != 0 {
+			rotTime = calcFirstRotTime(ts, c.Interval, c.UTCOffset)
+		} else {
+			rotTime = calcFirstRotTimeWithOffset(ts, c.Interval, c.Offset)
+		}
+		w.lastRotTime = rotTime
+		w.PrintRotLog()
+		return w.openWriter(w.lastRotTime)
+	}
+
+	// Do rotate.
+	if w.shouldRotate(ts) {
+		log.Printf("capture %v packets.", w.numPackets)
+		w.Close()
+		w.lastRotTime += c.Interval
+		w.PrintRotLog()
+		return w.openWriter(w.lastRotTime)
+	}
+
+	// Do nothing.
+	return nil
+}
+
 // WritePacket writes packet data to the file.
+// Update method must be called before WritePacket to make file.
 func (w *Writer) WritePacket(capinfo gopacket.CaptureInfo, data []byte) error {
 	w.numPackets += 1
+
+	// NOTE: WritePacket function calls write system call,
+	// so the 'data' are copied in the write system call.
 	return w.writer.WritePacket(capinfo, data)
 }
 
 // Close closes a file in a Writer instance.
 func (w *Writer) Close() error {
-	err := w.file.Close()
+	var err error
+
+	if w.file != nil {
+		err = w.file.Close()
+	}
+
 	w.file = nil
 	return err
 }
