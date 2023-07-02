@@ -16,9 +16,9 @@ toMs = 100
 # BPF rules (see man pcap-filter) [default: "", type: string]
 bpfRules = "ip"
 
-# Filename of pcap file [default: "pcap/%Y%m%d/%Y%m%d-%H%M00.pcap", type: string].
-# Formats of date and time (e.g. %Y, %m ...) will be filled (see man strftime)
-fileFmt = "dump/traffic-%Y%m%d%H%M%S.pcap"
+# Filename format of pcap files [default: "dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap", type: string].
+# Formats of date and time (e.g. %Y, %m ...) will be filled (see man strftime).
+fileFmt = "dump/%Y%m%d/traffic-%Y%m%d%H%M00.pcap"
 
 # Append packets to the existing file or not [default: true, type: boolean].
 # If true, packets are appended to the file when the file exists (this is
@@ -28,11 +28,13 @@ fileFmt = "dump/traffic-%Y%m%d%H%M%S.pcap"
 fileAppend = true
 
 # Timezone [default: "UTC", type: string]
+# An empty string (i.e., "") equals "UTC".
 # See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 timezone = "Asia/Tokyo"
 
 # Rotation interval (in second) [default: 60, type: integer, interval >= 0]
-# Pcap file will be rotated every `interval` seconds. If `interval` is 0, pcap file won't be rotated forever.
+# Pcap file will be rotated every `interval` seconds. If `interval` is 0, pcap
+# file won't be rotated forever.
 interval = 86400
 
 # DEPRECATED: Rotation interval offset (in second) [default: 0, type: integer, 0 <= offset < interval]
@@ -50,12 +52,12 @@ offset = 0
 #
 # If you want to rotate pcap files every 00:00 in JST (Japan Standard Time,
 # GMT+9), then set "9h". If you want to rotate pcap files every 00:00 in PST
-# (Pasific Standard Time, GMT-8), then set "-8h" (Daylight Saving Time is not
-# considered).
+# (Pasific Standard Time, GMT-8), then set "-8h" (Note that Daylight Saving
+# Time is not considered).
 utcOffset = "9h"
 
 # Sampling rate [default: 1.0, type: float, 0.0 <= sampling <= 1.0]
-# NOTE: The value must be float (i.e., 1.0 is OK, 1 is NG)
+# NOTE: The value must be float format (i.e., 1.0 is OK, 1 is NG)
 sampling = 1.0
 
 # Filename of log [default: "", type: string]
@@ -63,4 +65,5 @@ sampling = 1.0
 logFile = ""
 
 # Use system time as a time source of rotation [default: false, type: boolean]
+# By default, packet-captured time is used.
 useSystemTime = false
