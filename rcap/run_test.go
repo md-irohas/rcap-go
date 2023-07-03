@@ -171,3 +171,14 @@ func TestRunnerClose(t *testing.T) {
 
 	r.Close()
 }
+
+func TestRun(t *testing.T) {
+	tempDir := t.TempDir()
+	c := makeConfig()
+	c.Rcap.FileFmt = filepath.Join(tempDir, "traffic-%Y%m%d-%H%M%S.pcap")
+	c.CheckAndFormat()
+
+	if err := Run(c); err == nil {
+		t.Errorf("err is expected, but got 'nil'.")
+	}
+}
