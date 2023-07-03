@@ -113,15 +113,31 @@ func TestRunnerIsSamplingMode(t *testing.T) {
 	}
 }
 
-func TestRunnerDoSample(t *testing.T) {
+func TestRunnnerPrintSamplingResult(t *testing.T) {
 	c := makeConfig()
-	c.Rcap.Sampling = 0.1
 	c.CheckAndFormat()
 	r, _ := NewRunner(c)
 
+	// numCapturePackets == 0
+	r.printSamplingResult()
+
+	// numCapturePackets == 2, numSampledPackets == 1
+	r.numCapturedPackets = 2
+	r.numSampledPackets = 1
+	r.printSamplingResult()
+}
+
+func TestRunnerDoSampling(t *testing.T) {
+	c := makeConfig()
+	c.Rcap.Sampling = 0.1
+	c.CheckAndFormat()
+
+	r, _ := NewRunner(c)
+	r.numStatsPackets = 10
+
 	count := 0
 	for i := 0; i < 100; i++ {
-		if r.doSample() {
+		if r.doSampling() {
 			count++
 		}
 	}
