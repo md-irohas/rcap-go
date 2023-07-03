@@ -98,7 +98,7 @@ https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
 ### Configuration file
 
-See rcap.toml.orig.
+See [rcap.toml.orig](rcap.toml.orig).
 
 
 ### Systemd
@@ -108,10 +108,11 @@ Edit it and start/enable the service.
 
 ```sh
 # Copy systemd's unit file to systemd's directory.
-$ cp rcap.service.orig /etc/systemd/system/rcap.service
+$ cp -vi rcap.service.orig /etc/systemd/system/rcap.service
 
 # Edit the unit file.
 $ vim /etc/systemd/system/rcap.service
+...(edit)...
 
 # Start the rcap service.
 $ systemctl start rcap
@@ -131,6 +132,13 @@ reasons, so I do not implement this program as a daemon.
 (See "[runtime: support for daemonize #227](https://github.com/golang/go/issues/227)")
 
 Use systemd or supervisord instead.
+
+
+## Alternatives
+
+- tcpdump
+- tshark
+- dumpcap
 
 
 ## License
