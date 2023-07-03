@@ -171,10 +171,8 @@ func (r *Runner) Close() {
 }
 
 func Run(config *Config) error {
-	r, err := NewRunner(config)
-	if err != nil {
-		return err
-	}
+	// The current NewRunner returns no error.
+	r, _ := NewRunner(config)
 
 	// Trap signals.
 	log.Println("trap signals (send SIGHUP to reload, SIGINT or SIGTERM to exit).")

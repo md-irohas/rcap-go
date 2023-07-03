@@ -52,8 +52,7 @@ func (c *Config) CheckAndFormat() error {
 		return err
 	}
 
-	// no error is returned from LoadLocation because validator checks timezone
-	// value.
+	// no error is returned from LoadLocation because validator checks timezone value.
 	c.Rcap.Location, _ = time.LoadLocation(c.Rcap.Timezone)
 	c.Rcap.SamplingMode = (c.Rcap.Sampling < 1.0)
 
