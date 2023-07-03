@@ -24,6 +24,7 @@ type Runner struct {
 	writer             *Writer
 	doExit             bool
 	doReload           bool
+	numStatsPackets    uint64 // num{Stats,Captured,Sampled}Packets are used to dump sampling results
 	numCapturedPackets uint64
 	numSampledPackets  uint64
 }
@@ -33,6 +34,7 @@ func NewRunner(c *Config) (*Runner, error) {
 		config:             c,
 		doExit:             false,
 		doReload:           false,
+		numStatsPackets:    SamplingDump,
 		numCapturedPackets: 0,
 		numSampledPackets:  0,
 	}
@@ -42,11 +44,14 @@ func NewRunner(c *Config) (*Runner, error) {
 
 func (r *Runner) Reload() error {
 	if r.config.Filename == "" {
-		return errors.New("no config file is set.")
+		err := errors.New("no config file is set.")
+		log.Printf("failed to reload config: %v\n", err)
+		return err
 	}
 
 	newConfig, err := LoadConfig(r.config.Filename)
 	if err != nil {
+		log.Printf("failed to reload config: %v\n", err)
 		return err
 	}
 
@@ -94,29 +99,50 @@ func (r *Runner) isSamplingMode() bool {
 	return r.config.Rcap.SamplingMode
 }
 
-func (r *Runner) doSample() bool {
-	return Random() < r.config.Rcap.Sampling
+func (r *Runner) printSamplingResult() {
+	var ratio float32
+	if r.numCapturedPackets == 0 {
+		ratio = 0.0
+	} else {
+		ratio = float32(r.numSampledPackets) / float32(r.numCapturedPackets) * 100
+	}
+
+	log.Printf("sampling result: %v/%v (%.2f%%)\n", r.numSampledPackets, r.numCapturedPackets, ratio)
+}
+
+func (r *Runner) doSampling() bool {
+	sample := Random() < r.config.Rcap.Sampling
+
+	r.numCapturedPackets++
+	if sample {
+		r.numSampledPackets++
+	}
+
+	if r.numCapturedPackets%r.numStatsPackets == 0 {
+		r.printSamplingResult()
+		r.numCapturedPackets = 0
+		r.numSampledPackets = 0
+	}
+
+	return sample
 }
 
 func (r *Runner) Run() error {
 	for !r.doExit {
 		if r.doReload {
-			if err := r.Reload(); err != nil {
-				log.Printf("failed to reload config: %v", err)
-			}
+			// Continue even if reloading config fails.
+			r.Reload()
 			r.doReload = false
 		}
 
-		err := r.setupReaderAndWriter()
-		if err != nil {
+		if err := r.setupReaderAndWriter(); err != nil {
 			return fmt.Errorf("failed to setup reader/writer: %w", err)
 		}
 
 		data, capinfo, pkterr := r.reader.ReadPacket()
 		currentTime := r.getTimestamp(capinfo, pkterr)
 
-		err = r.writer.Update(currentTime)
-		if err != nil {
+		if err := r.writer.Update(currentTime); err != nil {
 			return fmt.Errorf("failed to update writer: %w", err)
 		}
 
@@ -132,24 +158,11 @@ func (r *Runner) Run() error {
 			}
 		}
 
-		r.numCapturedPackets++
-		if r.isSamplingMode() {
-			doSample := r.doSample()
-
-			if doSample {
-				r.numSampledPackets++
-			}
-			if r.numCapturedPackets%SamplingDump == 0 {
-				samplingRatio := float32(r.numSampledPackets) / float32(r.numCapturedPackets) * 100
-				log.Printf("sampling result: %v/%v (%.2f%%)\n", r.numSampledPackets, r.numCapturedPackets, samplingRatio)
-			}
-			if !doSample {
-				continue
-			}
+		if !r.doSampling() {
+			continue
 		}
 
-		err = r.writer.WritePacket(capinfo, data)
-		if err != nil {
+		if err := r.writer.WritePacket(capinfo, data); err != nil {
 			return fmt.Errorf("failed to write packet: %w", err)
 		}
 	}
