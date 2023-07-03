@@ -1,5 +1,9 @@
 # rcap-go
 
+![Release](https://github.com/md-irohas/rcap-go/actions/workflows/release.yml/badge.svg)
+![Build and Tests](https://github.com/md-irohas/rcap-go/actions/workflows/build.yml/badge.svg)
+[![codecov](https://codecov.io/gh/md-irohas/rcap-go/branch/master/graph/badge.svg?token=QMU3RTHEBE)](https://codecov.io/gh/md-irohas/rcap-go)
+
 The `rcap` is a simple packet capturing utility written in Go.
 
 I just want a utility to capture traffic for honeypot monitoring.
@@ -8,8 +12,8 @@ But existing utilities such as tcpdump and tshark do not satisfy my needs, so I 
 The `rcap` has the following functions.
 
 * Dumping packets to files as PCAP format.
-* Rotation of pcap files every specified interval with offset (even if no packets are captured).
-* Flexible filename format (timezone-aware)
+* Rotating pcap files every specified interval with offset (even if no packets are captured).
+* Flexible filename format (timezone-aware).
 * Random sampling of packets.
 * Configuration file.
 * Logging.
@@ -21,6 +25,7 @@ The `rcap` has the following functions.
 
 * Go compiler
 * libpcap-dev
+
 
 ### Compilation
 
@@ -38,54 +43,54 @@ See https://github.com/md-irohas/rcap-go/releases.
 ## Usage
 
 ```sh
-$ ./rcap
+$ ./rcap --help
 Usage of ./rcap:
   -L string
-    	[deprecated] log file.
-  -S	use system time as a time source of rotation (default: use packet-captured time).
+        [deprecated] log file.
+  -S    use system time as a time source of rotation (default: use packet-captured time).
   -T int
-    	rotation interval [sec]. (default 60)
+        rotation interval [sec]. (default 60)
+  -append
+        append data to a file if it exists. (default true)
   -c string
-    	config file (other arguments will be ignored).
+        config file (other arguments will be ignored).
   -f string
-    	BPF rules.
+        BPF rules.
   -i string
-    	device name (e.g. en0, eth0). (default "any")
+        device name (e.g. en0, eth0). (default "any")
   -offset int
-    	rotation interval offset [sec].
-  -p	do NOT put into promiscuous mode. (default true)
+        [deprecated] rotation interval offset [sec].
+  -p    do NOT put into promiscuous mode. (default true)
   -s uint
-    	snapshot length. (default 65535)
+        snapshot length. (default 65535)
   -sampling float
-    	sampling rate (0 <= p <= 1). (default 1)
+        sampling rate (0 <= p <= 1). (default 1)
   -t uint
-    	timeout of reading packets from interface [milli-sec]. (default 100)
-  -v	show version and exit.
+        timeout of reading packets from interface [milli-sec]. (default 100)
+  -utcoffset duration
+        rotation interval offset from UTC [sec]. The negative value is also available.
+  -v    show version and exit.
   -w string
-    	format of output file. (default "pcap/%Y%m%d/%Y%m%d-%H%M%S.pcap")
+        format of output file. (default "dump/%Y%m%d/traffic-%Y%m%d%H%M%S.pcap")
   -z string
-    	timezone used for output file. (default "Local")
+        timezone used for output file. (default "UTC")
 ```
 
 
 ### Examples
 
+Example-1: Capture traffic of HTTP (80/tcp) on the interface 'en0' and files are rotated at every 00:00 (UTC).
+
 ```sh
-# capture traffic of HTTP (80/tcp) on the interface 'en0' and files are rotated at every 00:00 (UTC).
 $ ./rcap -i en0 -w http-%Y%m%d.pcap -f "tcp and port 80" -T 86400
 ```
 
-NOTE: files are rotated at (unixtime % 86400) == offset.
+Example-2: Capture the whole traffic on the interface 'en0' and files are rotated at every 09:00 (i.e., 00:00 (JST)).
+Plus, the filename of pcap files are filled with time (timezone "Asia/Tokyo").
 
 ```sh
-# capture the whole traffic on the interface 'en0' and files are rotated at every 09:00 (i.e., 00:00 (JST)).
-# the time format of pcap files are filled with the timezone "Asia/Tokyo".
-$ ./rcap -i en0 -w traffic-%Y%m%d.pcap -T 86400 -offset 54000 -z Asia/Tokyo
+$ ./rcap -i en0 -w traffic-%Y%m%d.pcap -T 86400 -utcoffset 9h -z Asia/Tokyo
 ```
-
-NOTE:
-In this case, JST is ahead of UTC by 32400 (=3600 * 9) seconds, so the offset
-is 54000 (=86400 - 32400) seconds.
 
 You can find your timezone string here:
 https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
@@ -96,7 +101,7 @@ https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 See rcap.toml.orig.
 
 
-### systemd
+### Systemd
 
 `rcap.service.orig` is a template unit file of systemd.
 Edit it and start/enable the service.
