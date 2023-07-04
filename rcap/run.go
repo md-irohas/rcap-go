@@ -45,13 +45,14 @@ func NewRunner(c *Config) (*Runner, error) {
 func (r *Runner) Reload() error {
 	if r.config.Filename == "" {
 		err := errors.New("no config file is set.")
-		log.Printf("failed to reload config: %v\n", err)
+		log.Printf("failed to reload config: %v", err)
 		return err
 	}
 
 	newConfig, err := LoadConfig(r.config.Filename)
 	if err != nil {
-		log.Printf("failed to reload config: %v\n", err)
+		log.Printf("failed to reload config: %v", err)
+		log.Println("use the previous config instead.")
 		return err
 	}
 

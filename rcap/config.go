@@ -1,12 +1,14 @@
 package rcap
 
 import (
-	"errors"
+	"fmt"
 	"log"
 	"os"
 	"time"
 
 	"github.com/go-playground/validator/v10"
+	"github.com/google/gopacket/layers"
+	"github.com/google/gopacket/pcap"
 	"github.com/pelletier/go-toml"
 )
 
@@ -43,12 +45,55 @@ type RcapConfig struct {
 	UseSystemTime bool           `toml:"useSystemTime" default:"false"`                    // Use system time or packet-captured time.
 }
 
+func isValidDevice(name string) bool {
+	devices, err := pcap.FindAllDevs()
+	if err != nil {
+		panic(err)
+	}
+
+	for _, device := range devices {
+		if device.Name == name {
+			return true
+		}
+	}
+
+	return false
+}
+
+func isValidBpf(bpf string, device string, captureLength uint) bool {
+	h, err := pcap.OpenLive(device, int32(captureLength), false, pcap.BlockForever)
+	if err == nil {
+		defer h.Close()
+		return h.SetBPFFilter(bpf) == nil
+	}
+
+	// For test
+	linkType := layers.LinkTypeEthernet
+	log.Printf("The device linktype could not be detected. '%v' is used anyway.", linkType)
+	_, err = pcap.CompileBPFFilter(linkType, int(captureLength), bpf)
+
+	return err == nil
+}
+
+func CheckDeviceAndBpf(device string, bpf string, captureLength uint) error {
+	if !isValidDevice(device) {
+		return fmt.Errorf("invalid device: '%v'", device)
+	}
+	if !isValidBpf(bpf, device, captureLength) {
+		return fmt.Errorf("invalid BPF: '%v'", bpf)
+	}
+	return nil
+}
+
 // CheckAndFormat method checks and formats the values in the configuration,
 // and returns an error if the configuration is invalid.
 func (c *Config) CheckAndFormat() error {
 	validate := validator.New()
 
 	if err := validate.Struct(c); err != nil {
+		return err
+	}
+	if err := CheckDeviceAndBpf(c.Rcap.Device, c.Rcap.BpfRules, c.Rcap.SnapLen); err != nil {
 		return err
 	}
 
@@ -103,7 +148,7 @@ func LoadConfig(filename string) (*Config, error) {
 				log.Println(valErr.Error())
 			}
 		}
-		return nil, errors.New("invalid config values")
+		return nil, fmt.Errorf("invalid config values: %w", err)
 	}
 
 	return config, nil
