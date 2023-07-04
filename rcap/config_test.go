@@ -8,6 +8,60 @@ import (
 	"github.com/pelletier/go-toml"
 )
 
+func TestIsValidDevice(t *testing.T) {
+	cases := []struct {
+		// in
+		device string
+		// out
+		isValid bool
+	}{
+		// device name
+		{"any", true},
+		{"lo", true},
+		{"not-found-deviec", false},
+	}
+
+	for _, c := range cases {
+		if isValidDevice(c.device) != c.isValid {
+			t.Errorf("'%v' is expected, but got '%v' (device='%v').", c.isValid, !c.isValid, c.device)
+		}
+	}
+}
+
+func TestCheckDeviceAndBpf(t *testing.T) {
+	cases := []struct {
+		// in
+		device string
+		bpf    string
+		// out
+		isValid bool
+	}{
+		// device name
+		{"any", "", true},
+		{"lo", "", true},
+		{"not-found-deviec", "", false},
+		// bpf
+		{"any", "ip", true},
+		{"any", "ip and ((dst net 192.168.0.0/16 and dst port 53) or (src net 192.168.0.0/16 and src port 53))", true},
+		{"any", "ip and (dst net 192.168.0.0/16 and dst port 53", false}, // lacks ) at the end of the expression
+		{"any", "vlan and ip6", true}, // this is valid for ethernet but invalid for null
+		{"any", "invalid bpf", false},
+	}
+
+	for _, c := range cases {
+		err := CheckDeviceAndBpf(c.device, c.bpf, 65535)
+		if c.isValid {
+			if err != nil {
+				t.Errorf("nil is expected, but got '%v': device='%v' bpf='%v'", err, c.device, c.bpf)
+			}
+		} else {
+			if err == nil {
+				t.Errorf("err is expected, but got 'nil': device='%v' bpf='%v'", c.device, c.bpf)
+			}
+		}
+	}
+}
+
 func TestPrintToLog(t *testing.T) {
 	config := &Config{Filename: "test"}
 	config.PrintToLog()
@@ -88,6 +142,18 @@ func TestConfigCheckAndFormatWithFailure(t *testing.T) {
 	// for _, valErr := range valErrs {
 	// 	t.Logf("validation error: %#v", valErr)
 	// }
+
+	c = makeConfig()
+	r = &c.Rcap
+
+	// invalid device and bpf
+	r.Device = "not-found-device"
+	r.BpfRules = "invalid bpf"
+
+	err = c.CheckAndFormat()
+	if err == nil {
+		t.Error("err is expected, but got nil.")
+	}
 }
 
 func TestLoadConfig(t *testing.T) {
@@ -106,14 +172,14 @@ func TestLoadConfigWithFailure(t *testing.T) {
 		{"", "open : no such file or directory"},
 		{"file-not-found", "open file-not-found: no such file or directory"},
 		{"testdata/rcap-invalid-toml.toml", "(2, 1): parsing error: keys cannot contain { character"},
-		{"testdata/rcap-invalid-config.toml", "invalid config values"},
+		{"testdata/rcap-invalid-config.toml", "invalid config values: Key: 'Config.Rcap.Offset' Error:Field validation for 'Offset' failed on the 'gte' tag"},
 	}
 
 	for _, c := range cases {
 		t.Logf("test with '%v'", c.filename)
 
 		if _, err := LoadConfig(c.filename); err.Error() != c.errMsg {
-			t.Errorf("'%#v' is expected, but got '%v'.", c.errMsg, err.Error())
+			t.Errorf("'%v' is expected, but got '%v'.", c.errMsg, err.Error())
 		}
 	}
 }
