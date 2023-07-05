@@ -1,6 +1,6 @@
 /dist/*
 /dump/*
 /pcap/*
-/coverage*
+/cover*
 /rcap-go
 /rcap.toml
