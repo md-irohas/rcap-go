@@ -95,24 +95,6 @@ func TestRunnerGetTimestamp(t *testing.T) {
 	}
 }
 
-func TestRunnerIsSamplingMode(t *testing.T) {
-	c := makeConfig()
-	c.Rcap.Sampling = 1.0
-	c.CheckAndFormat()
-	r, _ := NewRunner(c)
-
-	if r.isSamplingMode() != false {
-		t.Error("'false' is expected, but got 'true'.")
-	}
-
-	c.Rcap.Sampling = 0.5
-	c.CheckAndFormat()
-
-	if r.isSamplingMode() != true {
-		t.Error("'true' is expected, but got 'false'.")
-	}
-}
-
 func TestRunnnerPrintSamplingResult(t *testing.T) {
 	c := makeConfig()
 	c.CheckAndFormat()
@@ -127,7 +109,27 @@ func TestRunnnerPrintSamplingResult(t *testing.T) {
 	r.printSamplingResult()
 }
 
-func TestRunnerDoSampling(t *testing.T) {
+func TestRunnerDoSamplingAll(t *testing.T) {
+	c := makeConfig()
+	c.Rcap.Sampling = 1.0
+	c.CheckAndFormat()
+
+	r, _ := NewRunner(c)
+	r.numStatsPackets = 10
+
+	count := 0
+	for i := 0; i < 100; i++ {
+		if r.doSampling() {
+			count++
+		}
+	}
+
+	if count != 100 {
+		t.Errorf("The probability of doSample seems to be invalid: (%v != 100)", count)
+	}
+}
+
+func TestRunnerDoSampling10Percent(t *testing.T) {
 	c := makeConfig()
 	c.Rcap.Sampling = 0.1
 	c.CheckAndFormat()
