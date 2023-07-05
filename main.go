@@ -9,7 +9,7 @@ import (
 	"github.com/md-irohas/rcap-go/rcap"
 )
 
-const (
+var (
 	Version = "(unset)" // Version
 )
 
