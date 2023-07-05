@@ -122,18 +122,6 @@ $ systemctl enable rcap
 ```
 
 
-## Limitations
-
-### Run as daemon?
-
-Many services in Linux run as daemon.
-But golang does not support daemon officially because of some technical
-reasons, so I do not implement this program as a daemon.
-(See "[runtime: support for daemonize #227](https://github.com/golang/go/issues/227)")
-
-Use systemd or supervisord instead.
-
-
 ## Alternatives
 
 - tcpdump
