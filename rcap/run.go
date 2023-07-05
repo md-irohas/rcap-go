@@ -96,10 +96,6 @@ func (r *Runner) getTimestamp(capinfo gopacket.CaptureInfo, pkterr error) int64 
 	return capinfo.Timestamp.Unix()
 }
 
-func (r *Runner) isSamplingMode() bool {
-	return r.config.Rcap.SamplingMode
-}
-
 func (r *Runner) printSamplingResult() {
 	var ratio float32
 	if r.numCapturedPackets == 0 {
@@ -112,6 +108,10 @@ func (r *Runner) printSamplingResult() {
 }
 
 func (r *Runner) doSampling() bool {
+	if !r.config.Rcap.SamplingMode {
+		return true
+	}
+
 	sample := Random() < r.config.Rcap.Sampling
 
 	r.numCapturedPackets++
