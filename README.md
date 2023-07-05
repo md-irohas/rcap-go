@@ -98,6 +98,17 @@ $ ./rcap -i en0 -w traffic-%Y%m%d.pcap -T 86400 -utcoffset 9h -z Asia/Tokyo
 You can find your timezone string here:
 https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 
+Example-3: Use configuration file.
+
+```sh
+# Copy and edit a configuration file.
+$ cp -vi rcap.toml.orig rcap.toml
+$ vim rcap.toml
+... (edit) ...
+
+$ ./rcap -c rcap.toml
+```
+
 
 ### Configuration file
 
@@ -106,7 +117,7 @@ See [rcap.toml.orig](rcap.toml.orig).
 
 ### Systemd
 
-`rcap.service.orig` is a template unit file of systemd.
+[rcap.service.orig](rcao.service.orig) is a template unit file of systemd.
 Edit it and start/enable the service.
 
 ```sh
