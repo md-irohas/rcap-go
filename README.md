@@ -117,7 +117,7 @@ See [rcap.toml.orig](rcap.toml.orig).
 
 ### Systemd
 
-[rcap.service.orig](rcao.service.orig) is a template unit file of systemd.
+[rcap.service.orig](rcap.service.orig) is a template unit file of systemd.
 Edit it and start/enable the service.
 
 ```sh
