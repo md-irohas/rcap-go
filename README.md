@@ -21,23 +21,26 @@ The `rcap` has the following functions.
 
 ## Installation
 
-### Requirements
-
-* Go compiler
-* libpcap-dev
-
-
-### Compilation
-
-```sh
-$ go build
-```
-
 ### Compiled Binaries
 
 Compiled binaries are available (only for Linux x86_64) at GitHub release page.
 
 See https://github.com/md-irohas/rcap-go/releases.
+
+
+### Manual Compilation
+
+#### Requirements
+
+* Go compiler
+* libpcap-dev
+
+
+#### Complilation
+
+```sh
+$ go build
+```
 
 
 ## Usage

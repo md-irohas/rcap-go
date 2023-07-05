@@ -2,7 +2,7 @@
 
 ## v0.2
 
-### v0.2.0
+### v0.2.0 / 2023-07-05
 
 - refactor: refactor codes
 - feat: add configuration checker
