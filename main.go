@@ -49,6 +49,8 @@ func main() {
 		os.Exit(0)
 	}
 
+	log.Printf("rcap version: %v", Version)
+
 	if configFile != "" {
 		log.Printf("load config: %v", configFile)
 
