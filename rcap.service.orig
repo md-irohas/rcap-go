@@ -6,12 +6,16 @@ After=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/sbin/rcap -c /etc/rcap/rcap.toml
+ExecStart=/usr/local/sbin/rcap -c /usr/local/etc/rcap.toml
 ExecReload=/bin/kill -SIGHUP ${MAINPID}
 KillSignal=SIGINT
 Restart=on-failure
 RestartSec=1s
 AmbientCapabilities=CAP_NET_RAW CAP_NET_ADMIN
+
+# Make sure this user has a 'write' permission to the directory.
+# Also note that nobody/nogroup are supecial user/group in Ubuntu. Adding a
+# system user/group for rcap is recommended.
 User=nobody
 Group=nogroup
 
